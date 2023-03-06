@@ -6,6 +6,8 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 
+const Database = require('./model/Database')
+
 var app = express();
 
 // view engine setup
@@ -18,7 +20,11 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// database setup
+Database.create();
+
 app.use('/', indexRouter);
+app.get('/populate', Database.populate)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
