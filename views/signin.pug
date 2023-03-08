@@ -1,0 +1,20 @@
+extends layout 
+
+block content
+    .signin
+        form(action="/user/signin", method="post")
+            h2 Connexion 
+            if badData && !errors
+                p(style="color:red;") Nom d'utilisateur ou mot de passe invalide
+            .input-field 
+                input(type="text", name="username", placeholder="Nom d'utilisateur..." value = badData ? badData.username : '')
+                if (errors)
+                    span= errors ? errors.username : ''
+            .input-field 
+                input(type="password", name="password", placeholder="Mot de passe..." value = badData ? badData.password : '') 
+                if (errors)
+                    span= errors ? errors.password : ''
+            
+            .input-field 
+                input(type="submit", value="Signup") 
+                

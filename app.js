@@ -3,8 +3,13 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const dotenv = require("dotenv");
+const session = require("express-session");
+
+dotenv.config();
 
 var indexRouter = require('./routes/index');
+const userRouter = require('./routes/user');
 
 const Database = require('./model/Database')
 
@@ -20,11 +25,21 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// session setup
+const secret = process.env.SESSION_SECRET;
+app.use(session({
+  secret: secret,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {maxAge: 604800000} // a week
+}));
+
 // database setup
 Database.create();
 
 app.use('/', indexRouter);
-app.get('/populate', Database.populate)
+app.use('/user', userRouter);
+app.get('/populate', Database.populate);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

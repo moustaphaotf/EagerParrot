@@ -1,8 +1,46 @@
-body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+/* home */
+.home .actions {
+  display: flex;
+  flex-wrap: wrap;
 }
 
-a {
-  color: #00B7FF;
+/* sign in and sign up */
+
+.signin , .signup {
+  display: flex;
+  justify-content: center;
+}
+
+.signin form, .signup form{
+  display: flex;
+  flex-direction: column;
+}
+
+.signin .input-field, .signup .input-field{
+  position: relative;
+  margin-top: 1.1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.signin .input-field span, .signup .input-field span{
+  color: rgb(188, 22, 22);
+  font-size: small;
+  line-height: 20px;
+}
+
+.signin .input-field input, .signup .input-field input{
+  padding: 0.4rem;
+}
+
+.signin .input-field:first-child, .signup .input-field:first-child{
+  margin-bottom: 15rem;
+}
+
+.signin form input[type="submit"] , .signup form input[type="submit"] {
+  background-color:  #3960bb;
+  color: white;
+  border-radius: 4px;
+  margin-top: 2rem;
+  padding: 0.4rem;
 }

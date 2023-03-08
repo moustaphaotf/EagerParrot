@@ -11,12 +11,16 @@
     "async": "^3.2.4",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
+    "dotenv": "^16.0.3",
     "express": "~4.16.1",
+    "express-session": "^1.17.3",
+    "express-validator": "^6.15.0",
     "http-errors": "~1.6.3",
     "luxon": "^3.3.0",
     "marked": "^4.2.12",
     "morgan": "~1.9.1",
     "pug": "2.0.0-beta11",
+    "randomstring": "^1.2.3",
     "sqlite3": "^5.1.4"
   }
 }

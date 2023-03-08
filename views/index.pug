@@ -1,5 +1,34 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  .home 
+    h1= title || "Eager Parrot"
+    p Welcome to #{title || "Eager Parrot"}
+
+    .actions 
+      .action 
+        h4 Utilisateurs 
+        ul 
+          li 
+            a(href="/user/signup") Inscription
+          if !user 
+            li
+              a(href="/user/signin") Connexion
+          else 
+            li
+              a(href="/user/signout") Déconnexion 
+              | (!{user.username})
+      .action 
+        h4 Histoires 
+        ul 
+          li 
+            a(href="/stories") Liste des histoires
+          li 
+            a(href="/story/create") Nouvelle histoire
+      .action 
+        h4 Articles 
+        ul 
+          li 
+            a(href="/articles") Liste des articles 
+          li 
+            a(href="/article/create") Nouvel article
