@@ -329,7 +329,7 @@ const Database = class {
                 (6, 'aboubakr@gmail.com', 'aboubakr', 'aboubakr11x', 'Aboubakr', 'Conté', 0, '${new Date('2023/03/06').toISOString()}', 'USER');
 
                 INSERT INTO socialization (user_id, followee_id, date_from) VALUES
-                (1, 2, '${new Date('2023/03/06')}'), (2, 3, '${new Date('2023/03/06')}'), (1, 6, '${new Date('2023/03/06')}'), (2, 1, '${new Date('2023/03/06')}'), (6, 2, '${new Date('2023/03/06')}');
+                (1, 2, '${new Date('2023/03/06').toISOString()}'), (2, 3, '${new Date('2023/03/06').toISOString()}'), (1, 6, '${new Date('2023/03/06').toISOString()}'), (2, 1, '${new Date('2023/03/06').toISOString()}'), (6, 2, '${new Date('2023/03/06').toISOString()}'), (6, 1, '${new Date('2023/03/06').toISOString()}');
 
                 INSERT INTO story (id, title, summary, author_id, published, created_at, last_update) VALUES
                 (1, 'La journée à la plage', "Une famille passe une journée à la plage. Ils apportent des serviettes, des chaises, des parasols et des jouets pour enfants. Les enfants s'amusent à construire des châteaux de sable et à nager dans l'océan, tandis que les parents se détendent sur les chaises longues. Après un déjeuner de pique-nique, la famille prend une longue promenade sur la plage avant de retourner à la maison.", 1, 1, '${new Date('2023/03/06').toISOString()}', '${new Date('2023/03/06').toISOString()}'),
@@ -345,8 +345,29 @@ const Database = class {
                 (5, 'Conte'), 
                 (6, 'Conte animalier');
 
+
                 INSERT INTO story_storycategory(story_id, category_id) VALUES
                 (1, 2), (2, 5), (3, 2), (3, 4), (4, 3);
+
+                INSERT INTO article(id, title, author_id, summary, content, published, created_at, last_update) VALUES
+                (1, "Les bienfaits de la méditation sur la santé mentale", 1, "La méditation peut aider à réduire le stress, l'anxiété et la dépression en améliorant la capacité à gérer les émotions et à se concentrer sur le moment présent.", "La méditation peut aider à réduire le stress, l'anxiété et la dépression en améliorant la capacité à gérer les émotions et à se concentrer sur le moment présent.", 1, "${new Date('2023/03/06').toISOString()}", "${new Date('2023/03/06').toISOString()}"),
+                (2, "Comment l'intelligence artificielle est utilisée dans les soins de santé", 6, "L'intelligence artificielle est utilisée dans les soins de santé pour aider à diagnostiquer les maladies, personnaliser les traitements et améliorer la qualité des soins.", "L'intelligence artificielle est utilisée dans les soins de santé pour aider à diagnostiquer les maladies, personnaliser les traitements et améliorer la qualité des soins.", 1, "${new Date('2023/03/06').toISOString()}", "${new Date('2023/03/06').toISOString()}"),
+                (3, "Le rôle des abeilles dans la pollinisation des cultures", 2, "Les abeilles sont essentielles à la pollinisation des cultures, ce qui permet de produire des aliments sains et nutritifs pour les humains et les animaux.", "Les abeilles sont essentielles à la pollinisation des cultures, ce qui permet de produire des aliments sains et nutritifs pour les humains et les animaux.", 1, "${new Date('2023/03/06').toISOString()}", "${new Date('2023/03/06').toISOString()}"),
+                (4, "Comment la musique affecte le cerveau humain", 1, "La musique peut affecter le cerveau humain en stimulant différentes régions, ce qui peut améliorer l'humeur, la mémoire et la concentration.", "La musique peut affecter le cerveau humain en stimulant différentes régions, ce qui peut améliorer l'humeur, la mémoire et la concentration.", 1, "${new Date('2023/03/06').toISOString()}", "${new Date('2023/03/07').toISOString()}"),
+                (5, "Les avantages de la culture de plantes en intérieur", 3, "La culture de plantes en intérieur peut améliorer la qualité de l'air en éliminant les polluants, réduire le stress en créant un environnement relaxant et améliorer l'humeur en offrant une activité agréable et apaisante.", "La culture de plantes en intérieur peut améliorer la qualité de l'air en éliminant les polluants, réduire le stress en créant un environnement relaxant et améliorer l'humeur en offrant une activité agréable et apaisante.", 1, "${new Date('2023/03/06').toISOString()}", "${new Date('2023/03/07')}");
+
+                INSERT INTO articlecategory(id, name) VALUES
+                (1, "Santé"),
+                (2, "Bien-être"),
+                (3, "Technologie"),
+                (4, "Environnement"),
+                (5, "Agriculture"),
+                (6, "Science"),
+                (7, "Psychologie"),
+                (8, "Jardinage");
+
+                INSERT INTO article_articlecategory(article_id, category_id) VALUES
+                (1,1),(1,2),(2,3),(2,2),(3,4),(3,5),(4,6),(4,7),(5,8),(5,2);
             `,
             err => {
                 if(err) {

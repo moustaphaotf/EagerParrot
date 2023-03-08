@@ -14,7 +14,6 @@ module.exports = class {
             const {username, password} = req.body;
 
             const errors = validationResult(req);
-            console.log(errors);
             if(errors.isEmpty()) {
                 const db = new sqlite.Database('eagerparrot.db', sqlite.OPEN_READONLY, err => {
                     if(err) console.log("Error while opening the database !");
@@ -37,7 +36,6 @@ module.exports = class {
                 // récupérer les messages d'erreurs
                 const err = {};
                 for(let e of errors.errors) {
-                    console.log(e)
                     err[e.param] = e.msg;
                 }
                 res.render('signin', {badData: req.body, errors: err})
