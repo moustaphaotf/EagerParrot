@@ -4,45 +4,81 @@
   flex-wrap: wrap;
 }
 
-/* sign in and sign up */
+/* sign in and sign up new article*/
 
-.signin , .signup {
+.signin ,
+.signup ,
+.new-article{
   display: flex;
   justify-content: center;
 }
 
-.signin form, .signup form{
+.signin form,
+.signup form,
+.new-article form{
   display: flex;
   flex-direction: column;
 }
 
-.signin .input-field, .signup .input-field{
+.signin .input-field,
+.signup .input-field,
+.new-article .input-field{
   position: relative;
   margin-top: 1.1rem;
   display: flex;
   flex-direction: column;
 }
 
-.signin .input-field span, .signup .input-field span{
+.signin .input-field span,
+.signup .input-field span,
+.new-article .input-field span{
   color: rgb(188, 22, 22);
   font-size: small;
   line-height: 20px;
+  display: inline-block;
+  margin-left: 5px;
 }
 
-.signin .input-field input, .signup .input-field input{
+.signin .input-field input,
+.signup .input-field input,
+.new-article .input-field input{
   padding: 0.4rem;
 }
 
-.signin .input-field:first-child, .signup .input-field:first-child{
+.signin .input-field:first-child,
+.signup .input-field:first-child,
+.new-article .input-field:first-child{
   margin-bottom: 15rem;
 }
 
-.signin form input[type="submit"] , .signup form input[type="submit"] {
+.signin form input[type="submit"] ,
+.signup form input[type="submit"] ,
+.new-article form input[type="submit"] {
   background-color:  #3960bb;
   color: white;
   border-radius: 4px;
   margin-top: 2rem;
   padding: 0.4rem;
+}
+
+.new-article form textarea{
+  padding: 7px; 
+  font-size: 1.1em;
+  font-family: 'Times New Roman', Sérif;
+}
+
+.new-article form {
+  width: 80%;
+}
+.new-article form textarea{
+  display: inline-block;
+  resize: vertical;
+}
+
+@media (min-width: 972px){
+  .new-article form{
+    width: calc(972px * 0.8);
+  }
 }
 
 /* Liste des articles */
