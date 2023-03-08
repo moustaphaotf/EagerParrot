@@ -5,4 +5,11 @@ html
     link(rel='stylesheet', href='/stylesheets/style.css')
     meta(name="viewport" content="width=device-width, initial-scale: 1.0")
   body
+    ul 
+      li #[a(href="/") Home]
+      li #[a(href="/user/signup") Inscription]
+      if !user 
+        li #[a(href="/user/signin") Connexion]
+      else 
+        li #[a(href="/user/signout") Déconnexion ] (!{user.username})
     block content

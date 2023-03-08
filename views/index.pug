@@ -7,18 +7,6 @@ block content
 
     .actions 
       .action 
-        h4 Utilisateurs 
-        ul 
-          li 
-            a(href="/user/signup") Inscription
-          if !user 
-            li
-              a(href="/user/signin") Connexion
-          else 
-            li
-              a(href="/user/signout") Déconnexion 
-              | (!{user.username})
-      .action 
         h4 Histoires 
         ul 
           li 
