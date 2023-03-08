@@ -24,7 +24,7 @@ block content
                 each a in community_articles 
                     .article 
                         h4 #[a(href="/articles/"+a.id) !{a.title}]
-                        p= a.summary 
+                        p !{a.summary} 
                             a(href="/articles/"+a.id) Lire plus
                         p.more-details
                             span Publié le : !{a.created_at}
@@ -38,7 +38,7 @@ block content
                 each a in all_articles 
                     .article 
                         h4 #[a(href="/articles/"+a.id) !{a.title}]
-                        p= a.summary
+                        p !{a.summary} 
                              a(href="/articles/"+a.id) Lire plus
                         p.more-details
                             span Publié le : !{a.created_at}
