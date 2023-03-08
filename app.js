@@ -10,6 +10,7 @@ dotenv.config();
 
 var indexRouter = require('./routes/index');
 const userRouter = require('./routes/user');
+const articleRouter = require('./routes/article');
 
 const Database = require('./model/Database')
 
@@ -39,6 +40,7 @@ Database.create();
 
 app.use('/', indexRouter);
 app.use('/user', userRouter);
+app.use('/articles', articleRouter);
 app.get('/populate', Database.populate);
 
 // catch 404 and forward to error handler

@@ -1,0 +1,48 @@
+extends layout 
+
+block content
+    .article-list
+        //- Si un utilisateur est connecté
+        if user
+            //- Lister ses propres articles
+            h2 Les articles que vous avez publié (!{user_articles.length})
+            .articles 
+                each a in user_articles 
+                    .article 
+                        h4 #[a(href="/articles/"+a.id) !{a.title}]
+                        p= a.summary
+                            a(href="/articles/"+a.id) Lire plus
+                        p.more-details
+                            span Publié le : !{a.created_at}
+                            span Dernière mise à jour !{a.last_update}
+                            a(href="/users/"+a.author_id)= a.author_name
+                else 
+                    span Aucun article à afficher
+            //- Lister les articles des personnes qu'il suit
+            h2 Votre communauté (!{community_articles.length})
+            .articles 
+                each a in community_articles 
+                    .article 
+                        h4 #[a(href="/articles/"+a.id) !{a.title}]
+                        p= a.summary 
+                            a(href="/articles/"+a.id) Lire plus
+                        p.more-details
+                            span Publié le : !{a.created_at}
+                            span Dernière mise à jour : !{a.last_update}
+                            a(href="/users/"+a.author_id)= a.author_name
+                else 
+                    span Aucun article à afficher
+        //- Lister les tous les articles
+        h2 Eager parrot vous propose
+        .articles 
+                each a in all_articles 
+                    .article 
+                        h4 #[a(href="/articles/"+a.id) !{a.title}]
+                        p= a.summary
+                             a(href="/articles/"+a.id) Lire plus
+                        p.more-details
+                            span Publié le : !{a.created_at}
+                            span Dernière mise à jour : !{a.last_update}  
+                            a(href="/users/"+a.author_id)= a.author_name
+                else 
+                    span Aucun article à afficher

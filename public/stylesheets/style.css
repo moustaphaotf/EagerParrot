@@ -44,3 +44,35 @@
   margin-top: 2rem;
   padding: 0.4rem;
 }
+
+/* Liste des articles */
+
+.article-list .article{
+  border: 1px dotted gray;
+  border-radius: 4px;
+  padding: 5px;
+  margin: 5px;
+}
+
+.article-list .article .more-details{
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 575px) {
+  .article-list .articles {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .article-list .article{
+    width: 45%;
+  }
+}
+
+@media (min-width: 920px) {
+  .article-list .article{
+    width: 27%;
+    padding: 5px;
+    margin-left: 5px;
+  }
+}
