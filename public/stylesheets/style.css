@@ -112,3 +112,54 @@
     margin-left: 5px;
   }
 }
+
+/* Article details */
+.article-details {
+  padding: 10px;
+}
+
+.article-details .more-details{
+  margin: 5px;
+}
+
+.article-details .article-body{
+  margin: 10px auto;
+}
+
+.article-details .more-details span{
+  font-weight: bold;
+}
+
+.article-details .comment-section form{
+  display: flex;
+}
+
+.article-details .comment-section form textarea{
+  margin-right: 3px;
+  resize: vertical;
+  flex: 2;
+  padding: 4px;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.article-details .comment-section{
+  margin-top: 20px;
+}
+
+@media(min-width: 645px) {
+  .article-details .comment-section form textarea{
+    width: calc(645px * 0.8);
+    flex: none;
+  }
+}
+
+.article-details .comment-section form input[type="submit"]{
+  align-self: flex-end;
+  height: auto;
+}
+
+/* Bouttons d'action */
+.article-details .more-details .actions,
+.article-list .more-details .actions{
+  margin: 7px;
+}

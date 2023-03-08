@@ -1,0 +1,30 @@
+extends layout 
+
+block content
+        h1= article.title
+        .article-details    
+            div.more-details
+                div Auteur:  
+                    span #[a(href='/user/'+article.author_id)= article.author_name]
+                div Publié le : 
+                    span !{article.created_at}
+                div Dernière mise à jour : 
+                    span !{article.last_update}
+                div Nombre de vues : 
+                    span !{article.view_count}
+                if user && user.id == article.author_id 
+                    p.actions
+                        a(href=`/articles/${article.id}/edit`) Modifier
+                        span &nbsp; | 
+                        if article.published == 1
+                            a(href=`/articles/${article.id}/unpublish?redirec=article`) Cacher
+                        else 
+                            a(href=`/articles/${article.id}/publish?redirec=article`) Publier
+                        
+                hr
+            div.article-body= article.content
+            .comment-section 
+                form(action=`/articles/${article.id}/comment` method="post")
+                    textarea(name="content" placeholder="Laissez un commentaire...")
+                    input(type="submit" value="Poster !")
+                    

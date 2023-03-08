@@ -8,41 +8,80 @@ block content
             h2 Les articles que vous avez publié (!{user_articles.length})
             .articles 
                 each a in user_articles 
-                    .article 
+                    .article(id=a.id)
                         h4 #[a(href="/articles/"+a.id) !{a.title}]
-                        p= a.summary
+                        p !{a.summary } 
                             a(href="/articles/"+a.id) Lire plus
-                        p.more-details
+                        .more-details
                             span Publié le : !{a.created_at}
                             span Dernière mise à jour !{a.last_update}
                             a(href="/users/"+a.author_id)= a.author_name
+                            .actions 
+                                if(user.id == a.author_id)
+                                    a(href=`/articles/${a.id}/edit`) Modifier 
+                                    span | &nbsp;
+                                    a(href=`/articles/${a.id}/unpublish?redirect=list`) Cacher
                 else 
                     span Aucun article à afficher
+            if(user_articles_unpublished.length > 0)
+                h2 Vos articles non publiés (!{user_articles_unpublished.length})
+                .articles 
+                    each a in user_articles_unpublished 
+                        .article(id=a.id)
+                            h4 #[a(href="/articles/"+a.id) !{a.title}]
+                            p !{a.summary} 
+                                a(href="/articles/"+a.id) Lire plus
+                            .more-details
+                                span Publié le : !{a.created_at}
+                                span Dernière mise à jour !{a.last_update}
+                                a(href="/users/"+a.author_id)= a.author_name
+                                .actions 
+                                    if(user.id == a.author_id)
+                                        a(href=`/articles/${a.id}/edit`) Modifier 
+                                        span | &nbsp;
+                                        a(href=`/articles/${a.id}/publish?redirect=list`) Publier
             //- Lister les articles des personnes qu'il suit
+            
             h2 Votre communauté (!{community_articles.length})
             .articles 
                 each a in community_articles 
-                    .article 
+                    .article(id=a.id)
                         h4 #[a(href="/articles/"+a.id) !{a.title}]
                         p !{a.summary} 
                             a(href="/articles/"+a.id) Lire plus
-                        p.more-details
+                        .more-details
                             span Publié le : !{a.created_at}
                             span Dernière mise à jour : !{a.last_update}
                             a(href="/users/"+a.author_id)= a.author_name
+                            .actions 
+                                if(user.id == a.author_id)
+                                    a(href=`/articles/${a.id}/edit`) Modifier 
+                                    span | &nbsp;
+                                    if a.published == 1
+                                        a(href=`/articles/${a.id}/publish?redirect=list`) Publier
+                                    else 
+                                        a(href=`/articles/${a.id}/unpublish?redirect=list`) Cacher
                 else 
                     span Aucun article à afficher
         //- Lister les tous les articles
         h2 Eager parrot vous propose
         .articles 
                 each a in all_articles 
-                    .article 
+                    .article(id="article"+a.id)
                         h4 #[a(href="/articles/"+a.id) !{a.title}]
                         p !{a.summary} 
                              a(href="/articles/"+a.id) Lire plus
-                        p.more-details
+                        .more-details
                             span Publié le : !{a.created_at}
                             span Dernière mise à jour : !{a.last_update}  
                             a(href="/users/"+a.author_id)= a.author_name
+                            .actions 
+                                if(user && user.id == a.author_id)
+                                    a(href=`/articles/${a.id}/edit`) Modifier 
+                                    span | &nbsp;
+                                    if a.published == 1
+                                        a(href=`/articles/${a.id}/publish?redirect=list`) Publier
+                                    else 
+                                        a(href=`/articles/${a.id}/unpublish?redirect=list`) Cacher
                 else 
                     span Aucun article à afficher
