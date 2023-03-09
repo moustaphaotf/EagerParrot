@@ -275,12 +275,12 @@ const Database = class {
                     user_id INTEGER,
                     author_id INTEGER,
                     review_id INTEGER,
-                    FOREIGN KEY (story_id) REFERENCES story(id)
-                    FOREIGN KEY (chapter_id) REFERENCES chapter(id)
-                    FOREIGN KEY (comment_id) REFERENCES comment(id)
-                    FOREIGN KEY (article_id) REFERENCES article(id)
-                    FOREIGN KEY (user_id) REFERENCES user(id)
-                    FOREIGN KEY (author_id) REFERENCES user(id)
+                    FOREIGN KEY (story_id) REFERENCES story(id),
+                    FOREIGN KEY (chapter_id) REFERENCES chapter(id),
+                    FOREIGN KEY (comment_id) REFERENCES comment(id),
+                    FOREIGN KEY (article_id) REFERENCES article(id),
+                    FOREIGN KEY (user_id) REFERENCES user(id),
+                    FOREIGN KEY (author_id) REFERENCES user(id),
                     FOREIGN KEY (review_id) REFERENCES review(id)
                 );
             `,

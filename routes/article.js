@@ -8,5 +8,6 @@ router.post('/new', articleController.article_create_post);
 router.get('/:id', articleController.article_details);
 router.get('/:id/publish', articleController.article_publish);
 router.get('/:id/unpublish', articleController.article_unpublish);
+router.post('/:id/comment', articleController.article_new_comment);
 
 module.exports = router;

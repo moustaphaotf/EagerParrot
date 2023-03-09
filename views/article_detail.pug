@@ -25,6 +25,16 @@ block content
             div.article-body= article.content
             .comment-section 
                 form(action=`/articles/${article.id}/comment` method="post")
-                    textarea(name="content" placeholder="Laissez un commentaire...")
+                    .input-field 
+                        textarea(name="content" placeholder="Laissez un commentaire...")
+                        span !{errors ? "&nbsp; " + errors.content : ''}
+                    
                     input(type="submit" value="Poster !")
+                .comments-list 
+                    each comment in comments 
+                        .comment
+                            div.meta #[span.author-fullname !{comment.user_fullname}] | #[span !{comment.created_at}]
+                            .content= comment.content
+                    else  
+                        span Soyez le premier à laisser un commentaire !
                     

@@ -134,12 +134,24 @@
   display: flex;
 }
 
-.article-details .comment-section form textarea{
+.article-details .comment-section form .input-field{
   margin-right: 3px;
-  resize: vertical;
   flex: 2;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.article-details .comment-section form .input-field textarea{
+  resize: vertical;
+  flex: 1;  
   padding: 4px;
   font-family: 'Times New Roman', Times, serif;
+}
+.article-details .comment-section form .input-field span{
+  color: rgb(211, 86, 86);
+  margin-right: 5px;
+  font-size: small;
 }
 
 .article-details .comment-section{
@@ -147,7 +159,7 @@
 }
 
 @media(min-width: 645px) {
-  .article-details .comment-section form textarea{
+  .article-details .comment-section form .input-field{
     width: calc(645px * 0.8);
     flex: none;
   }
@@ -162,4 +174,23 @@
 .article-details .more-details .actions,
 .article-list .more-details .actions{
   margin: 7px;
+}
+
+.article-details .comment-section .comments-list{
+  padding: 10px;
+}
+
+.article-details .comment-section .comment {
+  padding: 0 5px 5px;
+  border-radius: 5px;
+  border-left: 2px gray dashed;
+  margin-bottom: 10px;
+}
+
+.article-details .comment-section .content{
+  padding: 5px;
+}
+
+.article-details .comment-section .author-fullname{
+  font-weight: bold;
 }

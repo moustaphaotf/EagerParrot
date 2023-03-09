@@ -125,6 +125,7 @@ module.exports = class{
                             INNER JOIN user u
                             ON c.author_id = u.id
                             WHERE article_id = ?
+                            ORDER BY c.created_at DESC
                         `,
                         req.params.id,
                         callback
@@ -137,12 +138,16 @@ module.exports = class{
                 else if(!article) {
                     const err = new Error("Article introuvable !");
                     return next(err);
-                } else if(req.session.user && article.author_id != req.session.user.id) {
+                } else if(article.published == 0 && req.session.user && article.author_id != req.session.user.id) {
                     const err = new Error("Vous n'avez pas accès à cet article !");
                     return next(err);
                 } else {
+                    // Formattage des dates
                     article.created_at = DateTime.fromISO(article.created_at).toLocaleString(DateTime.DATETIME_MED);
                     article.last_update = DateTime.fromISO(article.last_update).toLocaleString(DateTime.DATETIME_MED);
+                    comments.map(c => {
+                        c.created_at = DateTime.fromISO(c.created_at).toLocaleString(DateTime.DATETIME_MED);
+                    });
 
                     // Marquer comme lu si ce n'est pas le cas
                     if(req.session.user) {
@@ -167,7 +172,8 @@ module.exports = class{
                         title: article.title, 
                         article: article,
                         user: req.session.user, 
-                        comments: comments
+                        comments: comments,
+                        errors: req.commentProcessedErrors,
                     });
                 }
             }
@@ -251,7 +257,7 @@ module.exports = class{
                         db.run(
                             `
                                 INSERT INTO history(description, created_at, article_id, author_id) 
-                                VALUES("Création d'un nouveau article", "${new Date().toISOString()}", ?, ?)
+                                VALUES("Création d'un nouveau article.", "${new Date().toISOString()}", ?, ?)
                             `,
                             [this.lastID, author_id],
                             err => {
@@ -362,5 +368,59 @@ module.exports = class{
 
         db.close()
     }
-    
+
+    static article_new_comment = [
+        body('content').trim()
+            .isLength({min: 1})
+            .withMessage("Le commentaire ne doit pas être vide !"),
+        (req, res, next) => {
+            if(!req.session.user) return res.redirect("/user/signin");
+            
+            const errors = validationResult(req);
+            if(!errors.isEmpty()) {
+                const err = {};
+                for(let e of errors.errors) {
+                    err[e.param] = e.msg;
+                }
+
+                req.commentProcessedErrors = err;
+                this.article_details(req, res, next);
+            } else {
+                const {content} = req.body;
+                const author_id = req.session.user.id;
+                const created_at = new Date().toISOString();
+                const article_id = req.params.id;
+                // Tout est OKAY, on peut ajouter le commentaire
+                const db = new sqlite.Database("eagerparrot.db", err => {
+                    if(err) return next(err);
+                });
+
+                db.run(
+                    `
+                        INSERT INTO comment(content, article_id, author_id, created_at)
+                        VALUES (?, ?, ?, ?)
+                    `,
+                    [content, article_id, author_id, created_at],
+                    function(err) {
+                        if(err) return next(err);
+                        // The comment has been added, insert into the history table !
+                        const comment_id = this.lastID;
+
+                        db.run(
+                            "INSERT INTO history(article_id, comment_id, author_id, created_at, description) VALUES (? , ?, ?, ?, ?)",
+                            [article_id, comment_id, author_id, created_at, "Commentaire d'un article."],
+                            err => {
+                                if(err) console.log("Impossible d'ajouter cette action dans l'historique.", err.message);
+
+                                res.redirect("/articles/"+article_id);
+                            }
+                        );
+                    }
+                );
+
+                db.close();
+
+            }
+        }
+    ]
 }
