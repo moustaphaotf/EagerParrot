@@ -1,0 +1,33 @@
+extends layout 
+
+block content 
+    .new-article.article-update
+        .assets 
+            if assets 
+                each asset in assets
+                    if asset.type==="img"
+                        img(src=asset.url, alt)
+            
+        form(method="post" action=`/articles/${article.id}/edit`)
+            h2=title
+            .more-details 
+                .created_at Publié le : #[strong !{article.created_at}]
+                .last-update Dernière mise à jour : #[strong !{article.last_update}]
+            div
+                if(article.published == 0)
+                    a(href=`/articles/${article.id}/publish?redirect=edit`) Publier
+                else 
+                    a(href=`/articles/${article.id}/unpublish?redirect=edit`) Cacher
+
+            .input-field
+                input(type="text", name="title", placeholder="Donnez un titre à votre article" value = badData ? badData.title : article.title)
+                span= errors ? errors.title : ''
+            .input-field
+                input(type="text", name="summary", placeholder="Donnez un résumé de votre article" value = badData ? badData.summary : article.summary)
+                span=errors ? errors.summary : ''
+
+            .input-field 
+                textarea(name="content", rows="10" cols="15", placeholder="Ecrivez votre article...") !{badData ? badData.content : article.content}
+                span=errors ? errors.content : ''
+            .input-field 
+                input(type="submit" value="Poster !")

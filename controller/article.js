@@ -275,7 +275,7 @@ module.exports = class{
     ]
 
     static article_publish(req, res, next){
-        if(!req.session.user) res.redirect('/user/signin');
+        if(!req.session.user) return res.redirect('/user/signin');
         // On recherche l'article
         const db = new sqlite.Database('eagerparrot.db', err => {
             if(err) console.log("An error occured while opening the database !", err.message);
@@ -306,13 +306,9 @@ module.exports = class{
                                 [req.session.user.id, req.params.id],
                                 err => {
                                     if(err) console.log("Impossible d'ajouter cette action dans l'historique !", err.message);
+                                    next();
                                 }
                             );
-                            if(req.query.redirect && req.query.redirect=="list"){
-                                res.redirect(`/articles#`+req.params.id);
-                            } else{
-                                res.redirect("/articles/"+req.params.id);
-                            }
                         }
                     }
                 )
@@ -343,23 +339,19 @@ module.exports = class{
                     `UPDATE article SET published=0, last_update='${new Date().toISOString()}' WHERE id=?`,
                     req.params.id,
                     err => {
-                        db.run(
-                            `
-                                INSERT INTO history(description, created_at, author_id, article_id) 
-                                VALUES("Mise en privé d'un article.", "${new Date().toISOString()}", ?, ?)
-                            `,
-                            [req.session.user.id, req.params.id],
-                            err => {
-                                if(err) console.log("Impossible d'ajouter cette action dans l'historique !", err.message);
-                            }
-                        );
                         if(err) return next(err);
                         else {
-                            if(req.query.redirect && req.query.redirect=="list"){
-                                res.redirect(`/articles#`+req.params.id);
-                            } else{
-                                res.redirect("/articles/"+req.params.id);
-                            }
+                            db.run(
+                                `
+                                    INSERT INTO history(description, created_at, author_id, article_id) 
+                                    VALUES("Mise en privé d'un article.", "${new Date().toISOString()}", ?, ?)
+                                `,
+                                [req.session.user.id, req.params.id],
+                                err => {
+                                    if(err) console.log("Impossible d'ajouter cette action dans l'historique !", err.message);
+                                    next();
+                                }
+                            );
                         }
                     }
                 )
@@ -367,6 +359,22 @@ module.exports = class{
         })
 
         db.close()
+    }
+
+    static article_published_change = (req, res, next) => {
+        let dest = "/articles/" + req.params.id;
+        if(req.query.redirect) {
+            switch(req.query.redirect) {
+                case 'list' : 
+                    dest = `/articles#`+req.params.id;
+                    break;
+                case 'edit':
+                    dest = `/articles/${req.params.id}/edit`;
+                    break;
+            }
+        }
+
+        res.redirect(dest);
     }
 
     static article_new_comment = [
@@ -423,4 +431,135 @@ module.exports = class{
             }
         }
     ]
+
+    static article_edit_get = (req, res, next) => {
+        if(!req.session.user) return res.redirect('/user/signin');
+
+        const db = new sqlite.Database("eagerparrot.db", err => {
+            if(err) return next(err);
+        });
+
+        db.get(
+            `
+                SELECT * FROM article
+                WHERE id=?
+            `, req.params.id,
+            (err, article) => {
+                if(err) return next(err);
+                else if(!article) {
+                    const err = new Error("Article introuvable !");
+                    err.status = 404;
+                    return next(err);
+                } else if(article.author_id != req.session.user.id){
+                    const err = new Error("Vous n'avez pas le droit de modifier cet article !");
+                    err.status = 301;
+                    return next(err);
+                } else {
+                    // Formulaire de modification ici
+                    article.created_at = DateTime.fromISO(article.created_at).toLocaleString(DateTime.DATETIME_MED);
+                    article.last_update = DateTime.fromISO(article.last_update).toLocaleString(DateTime.DATETIME_MED);
+                    res.render("article_edit", {
+                        user: req.session.user,
+                        title: "Modification d'un article",
+                        article: article,
+                    });
+                }
+            }
+        );
+        db.close();
+    }
+
+    static article_edit_post = [
+        body('title').trim()
+            .isLength({min: 1})
+            .withMessage("Le titre de l'article est obligatoire !")
+            .custom(title => {
+                const words = title.split(' ');
+                const maxLength = 128;
+                if(words.length > maxLength) {
+                    throw new Error(`Le résumé de l'article est trop long (max: ${maxLength} mots)`);
+                }
+                return true;
+            }),
+        body('summary').trim()
+            .isLength({min: 1})
+            .withMessage("Le résumé de l'article est obligatoire !")
+            .custom(summary => {
+                const words = summary.split(' ');
+                const maxLength = 128;
+                if(words.length > maxLength) {
+                    throw new Error(`Le résumé de l'article est trop long (max: ${maxLength} mots)`);
+                }
+                return true;
+            }),
+        body('content').trim()
+            .isLength({min: 1})
+            .withMessage("Le contenu de l'article ne peut pas être vide !"),
+        (req, res, next) => {
+            if(!req.session.user) return res.redirect('/user/signin');
+    
+            const db = new sqlite.Database("eagerparrot.db", err => {
+                if(err) return next(err);
+            });
+    
+            db.get(
+                `
+                    SELECT * FROM article
+                    WHERE id=?
+                `, req.params.id,
+                (err, article) => {
+                    if(err) return next(err);
+                    else if(!article) {
+                        const err = new Error("Article introuvable !");
+                        err.status = 404;
+                        return next(err);
+                    } else if(article.author_id != req.session.user.id){
+                        const err = new Error("Vous n'avez pas le droit de modifier cet article !");
+                        err.status = 301;
+                        return next(err);
+                    } else {
+                    
+                        const errors = validationResult(req);
+                        if(errors.isEmpty()){
+                            // Modification ici
+                            const {title, summary, content} = req.body;
+                            const article_id = req.params.id;
+                            const now = new Date().toISOString();
+
+                            db.run(
+                                `
+                                    UPDATE article SET
+                                    title = ?,
+                                    summary = ?,
+                                    content = ?,
+                                    last_update = ?
+                                    WHERE id = ?
+                                `,
+                                [title, summary, content, now, article_id],
+                                err => {
+                                    if(err) return next(err);
+                                    res.redirect("/articles/" + article_id);
+                                }
+                            )
+                        } else {
+                            // Des erreurs ont survenu, reafficher le formulaire
+                            const err = {};
+                            for(let e of errors.errors){
+                                err[e.param] = e.msg;
+                            }
+                            res.render("article_edit", {
+                                user: req.session.user,
+                                title: "Modification d'un article",
+                                article: article,
+                                badData: req.body,
+                                errors: err,
+                            });
+                        }
+                    }
+                }
+            );
+    
+            db.close();
+        }
+    ] 
 }

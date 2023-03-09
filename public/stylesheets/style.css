@@ -194,3 +194,9 @@
 .article-details .comment-section .author-fullname{
   font-weight: bold;
 }
+
+/* Article update */
+.article-update .more-details{
+  margin-top : 10px;
+  margin-bottom : 10px;
+}
