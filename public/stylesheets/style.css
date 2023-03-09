@@ -126,7 +126,8 @@
   margin: 10px auto;
 }
 
-.article-details .more-details span{
+.article-details .more-details span,
+.article-list .more-details span{
   font-weight: bold;
 }
 

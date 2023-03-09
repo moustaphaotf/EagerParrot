@@ -12,6 +12,8 @@ block content
                     span !{article.last_update}
                 div Nombre de vues : 
                     span !{article.view_count}
+                div Commentaires : 
+                    span !{article.comment_count}
                 if user && user.id == article.author_id 
                     p.actions
                         a(href=`/articles/${article.id}/edit`) Modifier

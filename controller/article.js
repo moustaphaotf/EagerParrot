@@ -13,37 +13,62 @@ module.exports = class{
             user_articles(callback) {
                 db.all(
                     `
-                        SELECT a.id, title, author_id, summary, created_at, last_update, u.firstname || ' ' || u.lastname AS author_name 
-                        FROM article a
-                        INNER JOIN user u
-                        ON a.author_id = u.id
-                        WHERE author_id=? AND a.published=1
-                        ORDER BY created_at DESC
+                        SELECT a.id, a.title, a.summary, a.created_at, a.last_update, a.author_id,
+                            u.firstname || ' ' || u.lastname AS author_name,
+                            COUNT(DISTINCT c.id) AS comment_count,
+                            COUNT(DISTINCT v.id) AS view_count
+                        FROM user u
+                        INNER JOIN article a
+                        ON u.id = a.author_id
+                        LEFT JOIN comment c
+                        ON c.article_id = a.id
+                        LEFT JOIN view v
+                        ON v.article_id = a.id
+                        WHERE a.published = 1 AND a.author_id=?
+                        GROUP BY a.id, a.title, a.summary, a.created_at, a.last_update, a.author_id, author_name
+                        ORDER BY a.created_at DESC
                     `
                     , [req.session.user?.id], callback)
             },
             user_articles_unpublished(callback) {
                 db.all(
                     `
-                        SELECT a.id, title, author_id, summary, created_at, last_update, u.firstname || ' ' || u.lastname AS author_name 
-                        FROM article a
-                        INNER JOIN user u
-                        ON a.author_id = u.id
-                        WHERE author_id=? AND a.published!=1
-                        ORDER BY created_at DESC
+                        SELECT a.id, a.title, a.created_at, a.last_update, a.author_id,
+                            u.firstname || ' ' || u.lastname AS author_name,
+                            COUNT(DISTINCT c.id) AS comment_count,
+                            COUNT(DISTINCT v.id) AS view_count
+                        FROM user u
+                        INNER JOIN article a
+                        ON u.id = a.author_id
+                        LEFT JOIN comment c
+                        ON c.article_id = a.id
+                        LEFT JOIN view v
+                        ON v.article_id = a.id
+                        WHERE a.published = 0 AND a.author_id=?
+                        GROUP BY a.id, a.title, a.summary, a.created_at, a.last_update, a.author_id, author_name
+                        ORDER BY a.created_at DESC
                     `
                     , [req.session.user?.id], callback)
             },
             community_articles (callback){
                 db.all(
                     `
-                        SELECT a.id, title, author_id, summary, created_at, last_update, u.firstname || ' ' || u.lastname AS author_name FROM article a
-                        INNER JOIN socialization s 
+                        SELECT a.id, a.title, a.summary, a.created_at, a.last_update, a.author_id,
+                            u.firstname || ' ' || u.lastname AS author_name,
+                            COUNT(c.id) AS comment_count,
+                            COUNT(v.id) AS view_count
+                        FROM socialization s
+                        INNER JOIN article a
                         ON a.author_id = s.user_id
                         INNER JOIN user u
                         ON a.author_id = u.id
+                        LEFT JOIN comment c
+                        ON c.article_id = a.id
+                        LEFT JOIN view v
+                        ON v.article_id = a.id
                         WHERE s.followee_id = ? AND a.published=1
-                        ORDER BY created_at DESC
+                        GROUP BY a.id, a.title, a.summary, a.created_at, a.last_update, a.author_id
+                        ORDER BY a.created_at DESC
                     `,
                     [req.session.user?.id],
                     callback
@@ -52,11 +77,20 @@ module.exports = class{
             all_articles (callback) {
                 db.all(
                     `
-                        SELECT a.id, title, author_id, summary, created_at, last_update, u.firstname || ' ' || u.lastname AS author_name 
-                        FROM article a
-                        INNER JOIN user u
-                        ON a.author_id = u.id AND a.published=1
-                        ORDER BY created_at DESC
+                        SELECT a.id, a.title, a.summary, a.created_at, a.last_update, a.author_id,
+                            u.firstname || ' ' || u.lastname AS author_name,
+                            COUNT(DISTINCT c.id) AS comment_count,
+                            COUNT(DISTINCT v.id) AS view_count
+                        FROM user u
+                        INNER JOIN article a
+                        ON u.id = a.author_id
+                        LEFT JOIN comment c
+                        ON c.article_id = a.id
+                        LEFT JOIN view v
+                        ON v.article_id = a.id
+                        WHERE a.published = 1
+                        GROUP BY a.id, a.title, a.summary, a.created_at, a.last_update, a.author_id, author_name
+                        ORDER BY a.created_at DESC;
                     `
                     , callback
                 );
@@ -105,13 +139,17 @@ module.exports = class{
                 article(callback) {
                     db.get(
                         `
-                            SELECT a.*, u.firstname || ' ' || u.lastname AS author_name, (
-                                SELECT COUNT(*) FROM view WHERE view.article_id=a.id
-                            ) AS view_count
-                            FROM article a
-                            INNER JOIN user u
-                            ON a.author_id = u.id
-                            WHERE a.id=?
+                            SELECT a.*, u.firstname || ' ' || u.lastname AS author_name,
+                                COUNT(DISTINCT v.id) AS view_count,
+                                COUNT(DISTINCT c.id) AS comment_count 
+                            FROM user u 
+                            INNER JOIN article a 
+                            ON a.author_id = u.id 
+                            LEFT JOIN comment c
+                            ON c.article_id = a.id 
+                            LEFT JOIN view v 
+                            ON v.article_id = a.id 
+                            WHERE a.id = ?;
                         `, 
                         [req.params.id], 
                         callback
