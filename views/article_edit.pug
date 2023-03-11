@@ -1,5 +1,8 @@
 extends layout 
-
+block style 
+    link(rel="stylesheet", href="/stylesheets/tagify.css")
+block script 
+    script(src="/javascripts/tagify.js")
 block content 
     .new-article.article-update
         .assets 
@@ -21,13 +24,30 @@ block content
 
             .input-field
                 input(type="text", name="title", placeholder="Donnez un titre à votre article" value = badData ? badData.title : article.title)
-                span= errors ? errors.title : ''
+                span.error= errors ? errors.title : ''
             .input-field
                 input(type="text", name="summary", placeholder="Donnez un résumé de votre article" value = badData ? badData.summary : article.summary)
-                span=errors ? errors.summary : ''
-
+                span.error=errors ? errors.summary : ''
+            .input-field
+                input(type="text" id="categories" name="categories" placeholder="Donnez les catégories de votre article" value=badData ? badData.categories : categories)
+                span.error= errors ? errors.categories : ''
             .input-field 
                 textarea(name="content", rows="10" cols="15", placeholder="Ecrivez votre article...") !{badData ? badData.content : article.content}
-                span=errors ? errors.content : ''
+                span.error=errors ? errors.content : ''
             .input-field 
                 input(type="submit" value="Poster !")
+    script.
+        // Using the tagify to get select tags
+        const input = document.querySelector(".new-article #categories");
+        const categoriesString = "#{categories.join()}";
+        const list = categoriesString.split(',');
+        
+        console.log(list)
+        const tagify = new Tagify(input, {
+            whitelist: list, 
+            enforceWhitelist: false,
+            dropdown: {
+                enabled: 0,
+                maxItems: 5,
+            }
+        });

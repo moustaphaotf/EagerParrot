@@ -29,9 +29,9 @@
   flex-direction: column;
 }
 
-.signin .input-field span,
-.signup .input-field span,
-.new-article .input-field span{
+.signin .input-field span.error,
+.signup .input-field span.error,
+.new-article .input-field span.error{
   color: rgb(188, 22, 22);
   font-size: small;
   line-height: 20px;

@@ -2,6 +2,7 @@ const sqlite = require("sqlite3");
 const async = require('async');
 const {DateTime} = require('luxon');
 const {body, validationResult} = require('express-validator');
+const { marked } = require("marked");
 
 module.exports = class{
     static articles_list(req, res, next) {
@@ -187,6 +188,9 @@ module.exports = class{
                         c.created_at = DateTime.fromISO(c.created_at).toLocaleString(DateTime.DATETIME_MED);
                     });
 
+                    // formattage du contenu
+                    article.content = marked.parse(article.content);
+
                     // Marquer comme lu si ce n'est pas le cas
                     if(req.session.user) {
                         db.get(
@@ -225,7 +229,22 @@ module.exports = class{
         if(!req.session.user) {
             res.redirect('/user/signin')
         } else {
-            res.render('article_create', {title: "Nouvel article"});
+            // Récupérer la liste des catégories
+            const db = new sqlite.Database("eagerparrot.db", sqlite.OPEN_READONLY, err => {
+                if(err) console.log("Error while opening the database !");
+            });
+
+            db.all("SELECT id, name FROM articlecategory;", (err, categories) => {
+                if(err) console.log("An error occured while getting the articles !", err.message);
+
+                res.render('article_create', {
+                    categories: categories.map(c => c.name),
+                    title: "Nouvel article", 
+                    user: req.session.user
+                });
+            });
+
+            db.close;
         }
     }
 
@@ -255,32 +274,49 @@ module.exports = class{
         body('content').trim()
             .isLength({min: 1})
             .withMessage("Le contenu de l'article ne peut pas être vide !"),
+        body("categories").trim()
+            .custom(categories => {
+                categories = categories !== "" ? JSON.parse(categories) || [] : [];
+                if(categories.length === 0){
+                    throw new Error("Vous devez donner au moins une catégorie à l'article !");
+                }
+                return true;
+            }),
         (req, res, next) => {
             if(!req.session.user) return res.redirect("/user/signin");
+            req.body.categories = req.body.categories !== "" ? JSON.parse(req.body.categories) || [] : [];
+            req.body.categories = req.body.categories.map(c => c.value);
+
+            const db = new sqlite.Database('eagerparrot.db', err => {
+                if(err) console.log("Error while opening the database !", err.message)
+            });
             
+
             const errors = validationResult(req);
             // S'il y a une erreur de validation
             if(!errors.isEmpty()){
                 // récupérer les erreurs
-                const err = {};
+                const errs = {};
                 for(let e of errors.errors) {
-                    err[e.param] = e.msg;
+                    errs[e.param] = e.msg;
                 }
-                res.render("article_create", {
-                    title:"Nouvel article",
-                    badData: req.body,
-                    errors: err
-                })
+                
+                db.all("SELECT * FROM articlecategory ORDER BY name", (err, categories) => {
+                    if(err) console.log("An error occured while selecting the article categories", err.message);
+
+                    res.render("article_create", {
+                        user: req.session.user,
+                        title: "Nouvel article",
+                        badData: req.body,
+                        errors: errs,
+                        categories: categories.map(c => c.name),
+                    });
+                });
             } else {
                 const {title, summary, content} = req.body;
                 const author_id = req.session.user.id;
                 const now = new Date().toISOString();
                 const created_at = now , last_update = now;
-
-                // insérer l'article
-                const db = new sqlite.Database('eagerparrot.db', err => {
-                    if(err) console.log("Error while opening the database !", err.message)
-                });
 
                 db.run(
                     `
@@ -307,8 +343,8 @@ module.exports = class{
                     }
                 );
 
-                db.close();
             }
+            db.close();
         }
     ]
 
@@ -496,11 +532,26 @@ module.exports = class{
                     // Formulaire de modification ici
                     article.created_at = DateTime.fromISO(article.created_at).toLocaleString(DateTime.DATETIME_MED);
                     article.last_update = DateTime.fromISO(article.last_update).toLocaleString(DateTime.DATETIME_MED);
-                    res.render("article_edit", {
-                        user: req.session.user,
-                        title: "Modification d'un article",
-                        article: article,
-                    });
+                    
+                    db.all(
+                        `
+                            SELECT c.*
+                            FROM article a
+                            INNER JOIN article_articlecategory ac
+                            ON a.id = ac.article_id
+                            INNER JOIN articlecategory c
+                            ON c.id = ac.category_id
+                            WHERE a.id=?
+                        `, req.params.id, (err, categories) => {
+                            if(err) console.log("An error occured while getting the articles !", err.message);
+                            res.render('article_edit', {
+                                categories: categories.map(c => c.name),
+                                title: "Modification d'un article",
+                                user: req.session.user,
+                                article
+                            });
+                        }
+                    );
                 }
             }
         );
@@ -533,9 +584,16 @@ module.exports = class{
         body('content').trim()
             .isLength({min: 1})
             .withMessage("Le contenu de l'article ne peut pas être vide !"),
+        body("categories").trim()
+            .custom(categories => {
+                categories = categories !== '' ? JSON.parse(categories) || [] : [];
+                if(categories.length === 0) {
+                    throw(new Error("Vous devez donner au moins une catégorie à l'article !"));
+                }
+                return true;
+            }),
         (req, res, next) => {
             if(!req.session.user) return res.redirect('/user/signin');
-    
             const db = new sqlite.Database("eagerparrot.db", err => {
                 if(err) return next(err);
             });
@@ -563,7 +621,8 @@ module.exports = class{
                             const {title, summary, content} = req.body;
                             const article_id = req.params.id;
                             const now = new Date().toISOString();
-
+                            const {categories} = req.body;
+                            
                             db.run(
                                 `
                                     UPDATE article SET
@@ -571,7 +630,7 @@ module.exports = class{
                                     summary = ?,
                                     content = ?,
                                     last_update = ?
-                                    WHERE id = ?
+                                    WHERE id = ?;
                                 `,
                                 [title, summary, content, now, article_id],
                                 err => {
@@ -581,17 +640,31 @@ module.exports = class{
                             )
                         } else {
                             // Des erreurs ont survenu, reafficher le formulaire
-                            const err = {};
+                            const errs = {};
                             for(let e of errors.errors){
-                                err[e.param] = e.msg;
+                                errs[e.param] = e.msg;
                             }
-                            res.render("article_edit", {
-                                user: req.session.user,
-                                title: "Modification d'un article",
-                                article: article,
-                                badData: req.body,
-                                errors: err,
-                            });
+                            db.all(
+                                `
+                                    SELECT c.*
+                                    FROM articlecategory c
+                                    INNER JOIN article_articlecategory ac
+                                    ON ac.category_id = c.id
+                                    INNER JOIN article a
+                                    ON a.id = ac.article_id
+                                    WHERE a.id = ?
+                                `, req.params.id, (err, categories) => {
+                                    if(err) console.log("An error occured while getting the article categories !", err.message);
+                                    res.render("article_edit", {
+                                        user: req.session.user,
+                                        title: "Modification d'un article",
+                                        article: article,
+                                        badData: req.body,
+                                        errors: errs,
+                                        categories: categories.map(c => c.name)
+                                    });
+                                }
+                            )
                         }
                     }
                 }

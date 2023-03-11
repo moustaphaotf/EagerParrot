@@ -1,4 +1,8 @@
 extends layout 
+block script 
+    script(src="/javascripts/prism.js" defer)
+block style 
+    link(rel="stylesheet", href="/stylesheets/prism.css")
 
 block content
         h1= article.title
@@ -24,7 +28,7 @@ block content
                             a(href=`/articles/${article.id}/publish?redirec=article`) Publier
                         
                 hr
-            div.article-body= article.content
+            div.article-body !{article.content}
             .comment-section 
                 form(action=`/articles/${article.id}/comment` method="post")
                     .input-field 
