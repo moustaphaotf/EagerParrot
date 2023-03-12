@@ -313,7 +313,7 @@ module.exports = class{
                     });
                 });
             } else {
-                const {title, summary, content} = req.body;
+                const {title, summary, content, categories} = req.body;
                 const author_id = req.session.user.id;
                 const now = new Date().toISOString();
                 const created_at = now , last_update = now;
@@ -326,7 +326,31 @@ module.exports = class{
                     [title, summary, content, author_id, created_at, last_update],
                     function(err) {
                         if(err) return next(err);
-                        
+                        const article_id = this.lastID;
+                        // Ajout des catégories
+                        categories.forEach(cat => {
+                            // Selon que la catégorie existe déjà
+                            db.get("SELECT * FROM articlecategory WHERE name LIKE ?", cat, (err, category) => {
+                                if(err) return next(err);
+                                else if(category) {
+                                    // si elle existe, on marque que l'article appartient à cette catégorie
+                                    db.run("INSERT INTO article_articlecategory (article_id, category_id) VALUES(?, ?)", [article_id, category.id], err => {
+                                        if(err) return next(err);
+                                    })
+                                } else {
+                                    // Sinon, on ajoute la catégorie d'abord
+                                    db.run("INSERT INTO articlecategory(name) VALUES(?)", cat, function(err) {
+                                        if(err) return next(err);
+                                        else {
+                                            db.run("INSERT INTO article_articlecategory (article_id, category_id) VALUES (?, ?);", [article_id, this.lastID], err => {
+                                                if(err) return next(err);
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                        });
+
                         // On ajoute cette action dans l'historique ?
                         db.run(
                             `
@@ -533,23 +557,41 @@ module.exports = class{
                     article.created_at = DateTime.fromISO(article.created_at).toLocaleString(DateTime.DATETIME_MED);
                     article.last_update = DateTime.fromISO(article.last_update).toLocaleString(DateTime.DATETIME_MED);
                     
-                    db.all(
-                        `
-                            SELECT c.*
-                            FROM article a
-                            INNER JOIN article_articlecategory ac
-                            ON a.id = ac.article_id
-                            INNER JOIN articlecategory c
-                            ON c.id = ac.category_id
-                            WHERE a.id=?
-                        `, req.params.id, (err, categories) => {
-                            if(err) console.log("An error occured while getting the articles !", err.message);
-                            res.render('article_edit', {
-                                categories: categories.map(c => c.name),
-                                title: "Modification d'un article",
-                                user: req.session.user,
-                                article
-                            });
+                    async.parallel(
+                        {
+                            all_categories(callback) {
+                                db.all(
+                                    `
+                                        SELECT * FROM articlecategory ORDER BY name;
+                                    `, callback
+                                );
+                            },
+                            article_categories(callback) {
+                                db.all(
+                                    `
+                                        SELECT c.*
+                                        FROM article a
+                                        INNER JOIN article_articlecategory ac
+                                        ON a.id = ac.article_id
+                                        INNER JOIN articlecategory c
+                                        ON c.id = ac.category_id
+                                        WHERE a.id=?
+                                        ORDER BY c.name;
+                                    `, req.params.id, callback
+                                );
+                            }
+                        },
+                        (err, results) => {
+                            if(err) return next(err);
+                            else {
+                                res.render('article_edit', {
+                                    categories: results.article_categories.map(c => c.name),
+                                    all_categories: results.all_categories.map(c => c.name),
+                                    title: "Modification d'un article",
+                                    user: req.session.user,
+                                    article
+                                });
+                            }
                         }
                     );
                 }
@@ -621,8 +663,10 @@ module.exports = class{
                             const {title, summary, content} = req.body;
                             const article_id = req.params.id;
                             const now = new Date().toISOString();
-                            const {categories} = req.body;
-                            
+                            let {categories} = req.body;
+                            categories = JSON.parse(categories) || [];
+                            categories = categories.map(c => c.value);
+
                             db.run(
                                 `
                                     UPDATE article SET
@@ -635,6 +679,53 @@ module.exports = class{
                                 [title, summary, content, now, article_id],
                                 err => {
                                     if(err) return next(err);
+                                    db.run("DELETE FROM article_articlecategory WHERE article_id=?", article_id);
+
+                                    // After updating, and deleting the article's categories
+                                    // Among all the received article
+                                    categories.forEach(cat => {
+                                        // If the article exists
+                                        db.get("SELECT * FROM articlecategory WHERE name LIKE ?", cat, (err, category) => {
+                                            if(err) return next(err);
+                                            else if(category) {
+                                                // the category exists
+                                                db.run(
+                                                    "INSERT INTO article_articlecategory(article_id, category_id) VALUES (?, ?)",
+                                                    [article_id, category.id],
+                                                    err => {
+                                                        if(err) return next(err);
+                                                    }
+                                                );
+                                            } else {
+                                                // the category doesn't exist, we must create it
+                                                db.run(
+                                                    "INSERT INTO articlecategory(name) VALUES (?)",
+                                                    [cat], function(err){
+                                                        if(err) return next(err);
+                                                        else {
+                                                            // Insert the article id and category id into the appropriate table
+                                                            db.run(
+                                                                "INSERT INTO article_articlecategory(article_id, category_id) VALUES (?, ?);",
+                                                                [article_id, this.lastID],
+                                                                err => {
+                                                                    if(err) return next(err);
+                                                                }
+                                                            );
+                                                        }
+                                                    }
+                                                );
+                                            }
+                                        });
+                                    });
+
+                                    // Adding the action into the history table
+                                    db.run(
+                                        "INSERT INTO history(article_id, author_id, created_at, description) VALUES (?, ?, ?, ?)",
+                                        [article_id, req.session.user.id, new Date().toISOString(), "Mise à jour d'un article."],
+                                        err => {
+                                            if(err) console.log("Impossible d'ajouter cette action dans l'historique !");
+                                        }
+                                    );
                                     res.redirect("/articles/" + article_id);
                                 }
                             )
@@ -644,27 +735,46 @@ module.exports = class{
                             for(let e of errors.errors){
                                 errs[e.param] = e.msg;
                             }
-                            db.all(
-                                `
-                                    SELECT c.*
-                                    FROM articlecategory c
-                                    INNER JOIN article_articlecategory ac
-                                    ON ac.category_id = c.id
-                                    INNER JOIN article a
-                                    ON a.id = ac.article_id
-                                    WHERE a.id = ?
-                                `, req.params.id, (err, categories) => {
-                                    if(err) console.log("An error occured while getting the article categories !", err.message);
-                                    res.render("article_edit", {
-                                        user: req.session.user,
-                                        title: "Modification d'un article",
-                                        article: article,
-                                        badData: req.body,
-                                        errors: errs,
-                                        categories: categories.map(c => c.name)
-                                    });
+
+                            async.parallel(
+                                {
+                                    all_categories(callback) {
+                                        db.all(
+                                            `
+                                                SELECT * FROM articlecategory ORDER BY name;
+                                            `, callback
+                                        );
+                                    },
+                                    article_categories(callback) {
+                                        db.all(
+                                            `
+                                                SELECT c.*
+                                                FROM article a
+                                                INNER JOIN article_articlecategory ac
+                                                ON a.id = ac.article_id
+                                                INNER JOIN articlecategory c
+                                                ON c.id = ac.category_id
+                                                WHERE a.id=?
+                                                ORDER BY c.name;
+                                            `, req.params.id, callback
+                                        );
+                                    }
+                                },
+                                (err, results) => {
+                                    if(err) return next(err);
+                                    else {
+                                        res.render('article_edit', {
+                                            categories: results.article_categories.map(c => c.name),
+                                            all_categories: results.all_categories.map(c => c.name),
+                                            title: "Modification d'un article",
+                                            user: req.session.user,
+                                            article,
+                                            badData: req.body,
+                                            errors: errs,
+                                        });
+                                    }
                                 }
-                            )
+                            );
                         }
                     }
                 }

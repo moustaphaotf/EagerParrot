@@ -21,6 +21,7 @@ block content
                 span.error=errors ? errors.summary : ''
             .input-field
                 input(type="text" id="categories" name="categories" placeholder="Donnez les catégories de votre article" value=badData ? badData.categories : [])
+                span(style="font-size: small;") &nbsp;&nbsp;Séparer les entrées par une virgule (ou tapez sur la touche entrée après chaque catégorie)
                 span.error= errors ? errors.categories : ''
             .input-field 
                 textarea(name="content", rows="10" cols="15", placeholder="Ecrivez votre article...") !{badData ? badData.content : ''}
