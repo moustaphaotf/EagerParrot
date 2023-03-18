@@ -182,4 +182,9 @@ module.exports = class {
 
         db.close();
     }
+
+    static user_logged(req, res, next) {
+        if(req.session.user) next();
+        else res.redirect('/user/signin');
+    }
 }

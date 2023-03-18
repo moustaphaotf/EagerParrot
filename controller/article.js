@@ -5,6 +5,44 @@ const {body, validationResult} = require('express-validator');
 const { marked } = require("marked");
 
 module.exports = class{
+    static article_exists(req, res, next) {
+        const db = new sqlite.Database("eagerparrot.db", err => {
+            if(err) console.log("Error while opening the database !");
+        });
+
+        db.get("SELECT * FROM article WHERE id = ?", req.params.id, (err, article) => {
+            if(err) return next(err);
+            else if (!article) {
+                const err = new Error("Article introuvable !");
+                err.session = 404;
+                return next(err);
+            } else {
+                next();
+            }
+        });
+
+        db.close();
+    }
+
+    static user_is_owner(req, res, next) {
+        const db = new sqlite.Database("eagerparrot.db", err => {
+            if(err) console.log("Error while opening the database !");
+        });
+
+        db.get("SELECT * FROM article WHERE id = ? AND author_id=?", (err, article) => {
+            if(err) next(err);
+            else if(!err) {
+                const err = new Error("Vous n'avez pas accès à cet article !");
+                err.status = 403;
+                return next(err);
+            } else {
+                next();
+            }
+        })
+
+        db.close();
+    }
+
     static articles_list(req, res, next) {
         const db = new sqlite.Database('eagerparrot.db', sqlite.OPEN_READONLY, err => {
             if(err) console.log("Error while opening the database !", err.message);
@@ -108,7 +146,7 @@ module.exports = class{
                 else if(!article) {
                     const err = new Error("Article introuvable !");
                     return next(err);
-                } else if(article.published == 0 && req.session.user && article.author_id != req.session.user.id) {
+                } else if(article.published == 0 && (req.session.user && article.author_id != req.session.user.id || true )) {
                     const err = new Error("Vous n'avez pas accès à cet article !");
                     return next(err);
                 } else {
@@ -396,6 +434,9 @@ module.exports = class{
             switch(req.query.redirect) {
                 case 'list' : 
                     dest = `/articles#`+req.params.id;
+                    break;
+                case 'profile':
+                    target = `/user/${req.session.user.id}/profile#article${req.params.id}`;
                     break;
                 case 'edit':
                     dest = `/articles/${req.params.id}/edit`;
@@ -713,5 +754,121 @@ module.exports = class{
     
             db.close();
         }
-    ] 
+    ]
+
+    static article_like(req, res, next) {
+        const db = new sqlite.Database('eagerparrot.db', err => {
+            if(err) console.log("Error while opening the database !");
+        });
+
+        db.get(
+            "SELECT * FROM review WHERE article_id=? AND author_id=?", 
+            [req.params.id, req.session.user.id], 
+            (err, review) => {
+                if(err) return next(err);
+                else if(!review) {
+                    db.run(
+                        "INSERT INTO review(article_id, author_id, value) VALUES(?,?,1);",
+                        [req.params.id, req.session.user.id],
+                        function(err) {
+                            if(err) return next(err);
+                            else {
+                                db.run(
+                                    "INSERT INTO history(description, created_at, review_id, article_id, author_id) VALUES(?, ?, ?, ?, ?);",
+                                    ["Appréciation d'un article.", new Date().toISOString(), this.lastID, req.params.id, req.session.user.id],
+                                    err => {
+                                        if(err) console.log("Unable to add this action into the history !")
+                                        next();
+                                    }
+                                );
+                            }
+                        }
+                    );
+                } else {
+                    db.run("UPDATE review SET value=1 WHERE id=? AND value=-1;", review.id, function(err) {
+                        if(err) return next(err);
+                        else if(this.changes){
+                            db.run(
+                                "INSERT INTO history(description, created_at, review_id, article_id, author_id) VALUES(?, ?, ?, ?, ?);",
+                                ["Appréciation d'un article.", new Date().toISOString(), review.id, req.params.id, req.session.user.id],
+                                err => {
+                                    if(err) console.log("Unable to add this action into the history !")
+                                    next();
+                                }
+                            );
+                        } else {
+                            next();
+                        }
+                    })
+                }
+            }
+        );
+
+        db.close();
+    }
+
+    static article_dislike(req, res, next) {
+        const db = new sqlite.Database('eagerparrot.db', err => {
+            if(err) console.log("Error while opening the database !");
+        });
+
+        db.get(
+            "SELECT * FROM review WHERE article_id=? AND author_id=?", 
+            [req.params.id, req.session.user.id], 
+            (err, review) => {
+                if(err) return next(err);
+                else if(!review) {
+                    db.run(
+                        "INSERT INTO review(article_id, author_id, value) VALUES(?,?,-1);",
+                        [req.params.id, req.session.user.id],
+                        function(err) {
+                            if(err) return next(err);
+                            else {
+                                db.run(
+                                    "INSERT INTO history(description, created_at, review_id, article_id, author_id) VALUES(?, ?, ?, ?, ?);",
+                                    ["Dépréciation d'un article.", new Date().toISOString(), this.lastID, req.params.id, req.session.user.id],
+                                    err => {
+                                        if(err) console.log("Unable to add this action into the history !")
+                                        next();
+                                    }
+                                );
+                            }
+                        }
+                    );
+                } else {
+                    db.run("UPDATE review SET value=-1 WHERE id=? AND value=1;", review.id, function(err) {
+                        if(err) return next(err);
+                        else if(this.changes){
+                            db.run(
+                                "INSERT INTO history(description, created_at, review_id, article_id, author_id) VALUES(?, ?, ?, ?, ?);",
+                                ["Dépréciation d'un article.", new Date().toISOString(), review.id, req.params.id, req.session.user.id],
+                                err => {
+                                    if(err) console.log("Unable to add this action into the history !")
+                                    next();
+                                }
+                            );
+                        } else {
+                            next();
+                        }
+                    })
+                }
+            }
+        );
+
+        db.close();
+    }
+
+    static article_review_change(req, res, next) {
+        let target = '/articles/' + req.params.id;
+        switch(req.query.redirect) {
+            case 'profile':
+                target = `/user/${req.session.user.id}/profile#article${req.params.id}`;
+                break;
+            case 'list':
+                target = `/articles#article${req.params.id}`;
+                break;
+        }
+
+        res.redirect(target);
+    }
 }

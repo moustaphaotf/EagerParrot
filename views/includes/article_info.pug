@@ -10,12 +10,16 @@ p !{a.summary}
         span !{a.view_count} 
         | | Commentaires:
         span !{a.comment_count}
+    div !{a.like_count}
+        a(href=`/articles/${a.id}/like?redirect=${user_profile ? 'profile' : 'list'}` style="text-decoration: none") &#x1F44D;
+        |   !{a.dislike_count}
+        a(href=`/articles/${a.id}/dislike?redirect=${user_profile ? 'profile' : 'list'}` style="text-decoration: none") &#x1F44E;
     a(href=`/user/${a.author_id}/profile`)= a.author_name
     .actions 
         if(user && user.id == a.author_id)
             a(href=`/articles/${a.id}/edit`) Modifier 
             span | &nbsp;
             if a.published == 0
-                a(href=`/articles/${a.id}/publish?redirect=list`) Publier
+                a(href=`/articles/${a.id}/publish?redirect=${user_profile ? 'profile' : 'list'}`) Publier
             else 
-                a(href=`/articles/${a.id}/unpublish?redirect=list`) Cacher
+                a(href=`/articles/${a.id}/unpublish?redirect=${user_profile ? 'profile' : 'list'}`) Cacher

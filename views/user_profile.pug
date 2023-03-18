@@ -10,7 +10,7 @@ block content
             h2 Articles publiés (!{articles.length})
             .articles.published
                 each a in articles
-                    .article
+                    .article(id="article" + a.id)
                         include includes/article_info
                 else 
                     span Aucun article à afficher
@@ -18,5 +18,5 @@ block content
                 h2 Article non publiés (!{articles_unpublished.length})
                 .articles.unpublished 
                     each a in articles_unpublished 
-                        .article 
+                        .article(id="article" + a.id)
                             include includes/article_info

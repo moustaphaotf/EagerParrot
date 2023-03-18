@@ -297,7 +297,9 @@ const Database = class {
                 SELECT a.id, a.title, a.summary, a.content, a.created_at, a.last_update, a.author_id, a.published,
                     u.firstname || ' ' || u.lastname AS author_name,
                     COUNT(DISTINCT c.id) AS comment_count,
-                    COUNT(DISTINCT v.id) AS view_count
+                    COUNT(DISTINCT v.id) AS view_count,
+                    (SELECT COUNT(*) FROM review WHERE article_id=a.id AND value=1) AS like_count,
+                    (SELECT COUNT(*) FROM review WHERE article_id=a.id AND value=-1) AS dislike_count
                 FROM user u
                 INNER JOIN article a
                 ON u.id = a.author_id
@@ -321,7 +323,9 @@ const Database = class {
                 SELECT a.id, a.title, a.summary, a.content, a.created_at, a.last_update, a.author_id, a.published, s.followee_id,
                     u.firstname || ' ' || u.lastname AS author_name,
                     COUNT(c.id) AS comment_count,
-                    COUNT(v.id) AS view_count
+                    COUNT(v.id) AS view_count,
+                    (SELECT COUNT(*) FROM review WHERE article_id=a.id AND value=1) AS like_count,
+                    (SELECT COUNT(*) FROM review WHERE article_id=a.id AND value=-1) AS dislike_count
                 FROM socialization s
                 INNER JOIN article a
                 ON a.author_id = s.user_id

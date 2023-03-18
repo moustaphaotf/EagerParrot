@@ -18,6 +18,10 @@ block content
                     span !{article.view_count}
                 div Commentaires : 
                     span !{article.comment_count}
+                div !{article.like_count}
+                    a(href=`/articles/${article.id}/like` style="text-decoration: none") &#x1F44D;
+                    |   !{article.dislike_count}
+                    a(href=`/articles/${article.id}/dislike` style="text-decoration: none") &#x1F44E;
                 if user && user.id == article.author_id 
                     p.actions
                         a(href=`/articles/${article.id}/edit`) Modifier
