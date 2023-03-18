@@ -9,7 +9,7 @@ block content
         .article-details    
             div.more-details
                 div Auteur:  
-                    span #[a(href='/user/'+article.author_id)= article.author_name]
+                    span #[a(href=`/user/${article.author_id}/profile`)= article.author_name]
                 div Publié le : 
                     span !{article.created_at}
                 div Dernière mise à jour : 

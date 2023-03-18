@@ -290,6 +290,68 @@ const Database = class {
             }
         );
 
+        db.exec(
+            `
+                DROP VIEW IF EXISTS article_list;
+                CREATE VIEW article_list AS
+                SELECT a.id, a.title, a.summary, a.content, a.created_at, a.last_update, a.author_id, a.published,
+                    u.firstname || ' ' || u.lastname AS author_name,
+                    COUNT(DISTINCT c.id) AS comment_count,
+                    COUNT(DISTINCT v.id) AS view_count
+                FROM user u
+                INNER JOIN article a
+                ON u.id = a.author_id
+                LEFT JOIN comment c
+                ON c.article_id = a.id
+                LEFT JOIN view v
+                ON v.article_id = a.id
+                GROUP BY a.id, a.title, a.summary, a.created_at, a.last_update, a.author_id, a.published
+                ORDER BY a.last_update DESC;
+            `,
+            err => {
+                if(err) console.log("Error while creating the `article_list` view", err.message);
+                else console.log("The `article_list` view was created successfully !");
+            }
+        );
+
+        db.exec(
+            `
+                DROP VIEW IF EXISTS community_articles;
+                CREATE VIEW community_articles AS
+                SELECT a.id, a.title, a.summary, a.content, a.created_at, a.last_update, a.author_id, a.published, s.followee_id,
+                    u.firstname || ' ' || u.lastname AS author_name,
+                    COUNT(c.id) AS comment_count,
+                    COUNT(v.id) AS view_count
+                FROM socialization s
+                INNER JOIN article a
+                ON a.author_id = s.user_id
+                INNER JOIN user u
+                ON a.author_id = u.id
+                LEFT JOIN comment c
+                ON c.article_id = a.id
+                LEFT JOIN view v
+                ON v.article_id = a.id
+                WHERE a.published=1
+                GROUP BY a.id, a.title, a.summary, a.created_at, a.last_update, a.author_id, s.followee_id, author_name
+                ORDER BY a.created_at DESC;
+            `,
+            err => {
+                if(err) console.log("Error while creating the `community_articles` view", err.message);
+                else console.log("The `community_article` view was created successfully !");
+            }
+        );
+
+        db.exec(
+            `
+                DROP VIEW IF EXISTS comment_list;
+                CREATE VIEW comment_list AS
+                SELECT c.*, u.firstname || ' ' || u.lastname AS user_fullname
+                FROM comment c
+                INNER JOIN user u
+                ON c.author_id = u.id
+                ORDER BY c.created_at DESC
+            `
+        )
 
         db.close(err => {
             if(err) console.log("Error while closing the database !", err.message);

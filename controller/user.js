@@ -1,5 +1,7 @@
 const { body, validationResult } = require("express-validator");
 const sqlite = require('sqlite3');
+const async = require("async");
+const { DateTime } = require("luxon");
 
 module.exports = class {
     static signin_get(req, res, next) {
@@ -120,5 +122,64 @@ module.exports = class {
             if(err) return next(err);
             else res.redirect('/');
         });
+    }
+
+    // L'affichage du profile d'un utilisateur
+    static user_profile(req, res, next) {
+        // Il faudra afficher ses informations personnelles
+        // Puis les articles qu'il a publiés
+        // Plus tard, les histoires qu'il a publiés peut-être... je sais pas (OUAIS, on va le prévoir)
+        const db = new sqlite.Database('eagerparrot.db', sqlite.OPEN_READONLY, err => {
+            if(err) return console.log("Error while opening the database !");
+        });
+
+        async.parallel(
+            {
+                user_profile(callback) {
+                    db.get("SELECT *, firstname || ' ' || lastname AS fullname FROM user WHERE id=?", req.params.id, (err, user) => {
+                        if(err) return callback(err);
+                        else if(!user) {
+                            const err = new Error("Utilisateur introuvable !");
+                            err.status = 404;
+                            callback(err);
+                        }
+                        else {
+                            callback(err, user);
+                        }
+                    });
+                },
+                articles(callback){
+                    db.all(
+                        "SELECT * FROM article_list WHERE author_id=? AND published=1",
+                        req.params.id,
+                        callback
+                    );
+                },
+                articles_unpublished(callback){
+                    db.all(
+                        "SELECT * FROM article_list WHERE author_id=? AND published=0",
+                        req.params.id,
+                        callback
+                    );
+                }
+            },
+            (err, results) => {
+                [...results.articles, ...results.articles_unpublished].map(el => {
+                    el.created_at = DateTime.fromISO(el.created_at).toLocaleString(DateTime.DATETIME_MED);
+                    el.last_update = DateTime.fromISO(el.last_update).toLocaleString(DateTime.DATETIME_MED);
+                });
+                if(err) return next(err);
+                else {
+                    res.render("user_profile", {
+                        title: results.user_profile.fullname,
+                        user: req.session.user,
+                        ...results,
+                    });
+                }
+            }
+        )
+
+
+        db.close();
     }
 }

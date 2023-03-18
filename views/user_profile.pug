@@ -1,0 +1,22 @@
+extends layout 
+block content
+    .user-profile 
+        h1=user_profile.fullname
+        div 
+            ul 
+                li #[a(href="#articles") Articles]
+        
+        #articles
+            h2 Articles publiés (!{articles.length})
+            .articles.published
+                each a in articles
+                    .article
+                        include includes/article_info
+                else 
+                    span Aucun article à afficher
+            if user && user.id === user_profile.id && articles_unpublished.length !== 0
+                h2 Article non publiés (!{articles_unpublished.length})
+                .articles.unpublished 
+                    each a in articles_unpublished 
+                        .article 
+                            include includes/article_info

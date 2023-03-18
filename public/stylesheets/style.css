@@ -83,30 +83,40 @@
 
 /* Liste des articles */
 
-.article-list .article{
+.article-list .article,
+.user-profile .article,
+.user-profile .story{
   border: 1px dotted gray;
   border-radius: 4px;
   padding: 5px;
   margin: 5px;
 }
 
-.article-list .article .more-details{
+.article-list .article .more-details,
+.user-profile .article .more-details,
+.user-profile .story .more-details{
   display: flex;
   flex-direction: column;
 }
 
 @media (min-width: 575px) {
-  .article-list .articles {
+  .article-list .articles,
+  .user-profile .articles,
+  .user-profile .stories {
     display: flex;
     flex-wrap: wrap;
   }
-  .article-list .article{
+  .article-list .article,
+  .user-profile .article,
+  .user-profile .story{
     width: 45%;
   }
 }
 
 @media (min-width: 920px) {
-  .article-list .article{
+  .article-list .article,
+  .user-profile .article,
+  .user-profile .story{
     width: 27%;
     padding: 5px;
     margin-left: 5px;
@@ -127,7 +137,9 @@
 }
 
 .article-details .more-details span,
-.article-list .more-details span{
+.article-list .more-details span,
+.user-profile .more-details span
+{
   font-weight: bold;
 }
 
