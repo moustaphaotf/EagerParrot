@@ -5,46 +5,43 @@ block style
     link(rel="stylesheet", href="/stylesheets/prism.css")
 
 block content
-        h1= article.title
-        .article-details    
-            div.more-details
-                div Auteur:  
-                    span #[a(href=`/user/${article.author_id}/profile`)= article.author_name]
-                div Publié le : 
-                    span !{article.created_at}
-                div Dernière mise à jour : 
-                    span !{article.last_update}
-                div Nombre de vues : 
-                    span !{article.view_count}
-                div Commentaires : 
-                    span !{article.comment_count}
-                div !{article.like_count}
-                    a(href=`/articles/${article.id}/like` style="text-decoration: none") &#x1F44D;
-                    |   !{article.dislike_count}
-                    a(href=`/articles/${article.id}/dislike` style="text-decoration: none") &#x1F44E;
+    div(class="p-4 md:w-3/4 md:m-auto")
+        h1(class="text-xl md:text-2xl lg:text-3xl mb-4")= article.title
+        div(class="bg-gray-700 rounded-lg p-2")
+            div &#x1F4C6; Publié le : 
+                span(class="font-bold text-gray-200 px-1") !{article.created_at}    
+            div &#x1F552; Dernière mise à jour :  
+                span(class="font-bold text-gray-200 px-1") !{article.last_update}  
+            div 
+                span(class="font-bold text-gray-200 px-1") !{article.like_count}
+                a(href=`/articles/${article.id}/like?redirect=article` style="text-decoration: none") &#x1F44D;
+                span(class="font-bold text-gray-200 px-1") !{article.dislike_count}
+                a(href=`/articles/${article.id}/dislike?redirect=article` style="text-decoration: none") &#x1F44E;
+                span &#x1F441;
+                span(class="font-bold text-gray-200 px-1") !{article.view_count} 
+                span &#x1F4AC;
+                span(class="font-bold text-gray-200 px-1") !{article.comment_count}
+            if(user && user.id == article.author_id)
+                a(class="bg-gray-600 text-gray-200 px-2 py-1 ml-2 inline-block my-1 rounded-lg" href=`/articles/${article.id}/edit`) Modifier
                 if user && user.id == article.author_id 
-                    p.actions
-                        a(href=`/articles/${article.id}/edit`) Modifier
-                        span &nbsp; | 
-                        if article.published == 1
-                            a(href=`/articles/${article.id}/unpublish?redirec=article`) Cacher
-                        else 
-                            a(href=`/articles/${article.id}/publish?redirec=article`) Publier
-                        
-                hr
-            div.article-body !{article.content}
-            .comment-section 
-                form(action=`/articles/${article.id}/comment` method="post")
-                    .input-field 
-                        textarea(name="content" placeholder="Laissez un commentaire...")
-                        span !{errors ? "&nbsp; " + errors.content : ''}
-                    
-                    input(type="submit" value="Poster !")
-                .comments-list 
-                    each comment in comments 
-                        .comment
-                            div.meta #[span.author-fullname !{comment.user_fullname}] | #[span !{comment.created_at}]
-                            .content= comment.content
-                    else  
-                        span Soyez le premier à laisser un commentaire !
-                    
+                    if article.published == 1
+                        a(class="bg-gray-600 text-gray-200 px-2 py-1 ml-2 inline-block my-1 rounded-lg" href=`/articles/${article.id}/unpublish?redirec=article`) Cacher
+                    else 
+                        a(class="bg-gray-600 text-gray-200 px-2 py-1 ml-2 inline-block my-1 rounded-lg" href=`/articles/${article.id}/publish?redirec=article`) Publier
+
+        div(class="m-2 text-gray-100 prose prose-md prose-violet prose-a:no-underline prose-headings:text-gray-100") !{article.content}
+        div
+            form(action=`/articles/${article.id}/comment` method="post" class="flex my-4")
+                div(class="flex flex-col w-full md:w-1/2 lg:w-2/5")
+                    textarea(name="content" placeholder="Laissez un commentaire..." class="rounded p-2 text-gray-800 bg-gray-100 focus:outline-gray-400")
+                    span(class="ml-1 text-red-400 text-sm") !{errors ? "&nbsp; " + errors.content : ''}
+                input(type="submit" value="Poster !" class="ml-2 self-end cursor-pointer border-1 shadow bg-gray-800 px-2 py-1 rounded-lg")
+            div
+                each comment in comments 
+                    div(class="my-2 bg-gray-800 p-2 rounded")
+                        div(class="flex flex-col")
+                            span #[a(href=`/user/${comment.author_id}/profile`) 👤 !{comment.user_fullname}]
+                            span 🕒 !{comment.created_at}
+                        div(class="m-2 text-gray-200")= comment.content
+                else  
+                    span Soyez le premier à laisser un commentaire !   

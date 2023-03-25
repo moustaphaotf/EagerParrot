@@ -1,36 +1,22 @@
 extends layout 
 
 block content
-    .article-list
+    div
         //- Si un utilisateur est connecté
         if user
-            //- Lister ses propres articles
-            h2 Les articles que vous avez publié (!{user_articles.length})
-            .articles 
-                each a in user_articles 
-                    .article(id=a.id)
+            //- Lister les articles des personnes qu'il suit
+            h2(class="text-2xl text-center m-4 md:text-left") Votre communauté (!{community_articles.length})
+            div(class="px-4 grid md:grid-cols-2 lg:grid-cols-3 gap-4")
+                each a in community_articles
+                    div(class="flex " )
                         include includes/article_info
                 else 
                     span Aucun article à afficher
-            if(user_articles_unpublished.length > 0)
-                h2 Vos articles non publiés (!{user_articles_unpublished.length})
-                .articles 
-                    each a in user_articles_unpublished 
-                        .article(id=a.id)
-                            include includes/article_info
-            //- Lister les articles des personnes qu'il suit
-            
-            h2 Votre communauté (!{community_articles.length})
-            .articles 
-                each a in community_articles 
-                    include includes/article_info
-                else 
-                    span Aucun article à afficher
         //- Lister les tous les articles
-        h2 Eager parrot vous propose (!{all_articles.length})
-        .articles 
-                each a in all_articles 
-                    .article(id="article"+a.id)
+        h2(class="text-2xl text-center m-4 md:text-left") Eager parrot vous propose (!{all_articles.length})
+        div(class="px-4 grid md:grid-cols-2 lg:grid-cols-3 gap-4")
+                each a in  all_articles
+                    div(class="flex " id="article"+a.id)
                         include includes/article_info
                 else 
                     span Aucun article à afficher

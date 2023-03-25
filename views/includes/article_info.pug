@@ -1,25 +1,22 @@
-h4 #[a(href="/articles/"+a.id) !{a.title}]
-p !{a.summary} 
-    a(href="/articles/"+a.id) Lire plus
-.more-details
-    div Publié le : 
-        span !{a.created_at}    
-    div Dernière mise à jour :
-        span !{a.last_update}  
-    div Vues : 
-        span !{a.view_count} 
-        | | Commentaires:
-        span !{a.comment_count}
-    div !{a.like_count}
-        a(href=`/articles/${a.id}/like?redirect=${user_profile ? 'profile' : 'list'}` style="text-decoration: none") &#x1F44D;
-        |   !{a.dislike_count}
-        a(href=`/articles/${a.id}/dislike?redirect=${user_profile ? 'profile' : 'list'}` style="text-decoration: none") &#x1F44E;
-    a(href=`/user/${a.author_id}/profile`)= a.author_name
-    .actions 
+div(onclick=`window.location.href='/articles/${a.id}'` class="cursor-pointer shadow-md bg-gray-800 rounded hover:bg-gray-600")
+    h4(class="font-bold text-lg text-gray-200 m-2") #[a(href="/articles/"+a.id) !{a.title}]
+    p(class="p-1 mx-6") !{a.summary} 
+        a(class="text-gray-100 px-2 py-1 inline-block bg-gray-700 rounded-full" href="/articles/"+a.id) Lire plus
+    .more-details(class="bg-gray-700 rounded-lg p-2 mt-2")
+        div &#x1F4C6; Publié le : 
+            span(class="font-bold text-gray-200 px-1") !{a.created_at}    
+        div &#x1F552; Dernière mise à jour :  
+            span(class="font-bold text-gray-200 px-1") !{a.last_update}  
+        div 
+            span(class="font-bold text-gray-200 px-1") !{a.like_count}
+            a(href=`/articles/${a.id}/like?redirect=${user_profile ? 'profile' : 'list'}` style="text-decoration: none") &#x1F44D;
+            span(class="font-bold text-gray-200 px-1") !{a.dislike_count}
+            a(href=`/articles/${a.id}/dislike?redirect=${user_profile ? 'profile' : 'list'}` style="text-decoration: none") &#x1F44E;
+            span &#x1F441;
+            span(class="font-bold text-gray-200 px-1") !{a.view_count} 
+            span &#x1F4AC;
+            span(class="font-bold text-gray-200 px-1") !{a.comment_count}
+        if(!user_profile)
+            a(class="font-bold text-gray-100 text-md" href=`/user/${a.author_id}/profile`) &#x1F464; !{a.author_name}
         if(user && user.id == a.author_id)
-            a(href=`/articles/${a.id}/edit`) Modifier 
-            span | &nbsp;
-            if a.published == 0
-                a(href=`/articles/${a.id}/publish?redirect=${user_profile ? 'profile' : 'list'}`) Publier
-            else 
-                a(href=`/articles/${a.id}/unpublish?redirect=${user_profile ? 'profile' : 'list'}`) Cacher
+            a(class="bg-gray-600 text-gray-200 px-2 py-1 ml-2 inline-block my-1 rounded-lg" href=`/articles/${a.id}/edit`) Modifier

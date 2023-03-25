@@ -4,38 +4,32 @@ block style
 block script 
     script(src="/javascripts/tagify.js") 
 block content 
-    .new-article
-        .assets 
-            if assets 
-                each asset in assets
-                    if asset.type==="img"
-                        img(src=asset.url, alt)
-            
-        form(method="post" action="/articles/new")
-            h2=title
-            .input-field
-                input(type="text", name="title", placeholder="Donnez un titre à votre article" value = badData ? badData.title : '')
-                span.error= errors ? errors.title : ''
-            .input-field
-                input(type="text", name="summary", placeholder="Donnez un résumé de votre article" value = badData ? badData.summary : '')
-                span.error=errors ? errors.summary : ''
-            .input-field
-                input(type="text" id="categories" name="categories" placeholder="Donnez les catégories de votre article" value=badData ? badData.categories : [])
-                span(style="font-size: small;") &nbsp;&nbsp;Séparer les entrées par une virgule (ou tapez sur la touche entrée après chaque catégorie)
-                span.error= errors ? errors.categories : ''
-            .input-field 
-                textarea(name="content", rows="10" cols="15", placeholder="Ecrivez votre article...") !{badData ? badData.content : ''}
-                span.error= errors ? errors.content : ''
-            .input-field 
-                input(type="submit" value="Poster !")
-    
+    h2(class="text-3xl font-bold md:text-4xl lg:text-5xl text-gray-200 text-center pb-8")=title
+    div(class="px-4 md:px-8 lg:flex lg:flex-row-reverse") 
+        div(class="lg:w-2/5 flex flex-col items-center my-4")
+            include includes/assets.pug
+        form(class="lg:w-3/5" method="post" action="/articles/new")
+            div(class="flex flex-col pb-4")
+                input(autofocus class="bg-gray-300 p-2 rounded text-gray-800 focus:outline-gray-500" type="text", name="title", placeholder="Donnez un titre à votre article" value = badData ? badData.title : '')
+                span(class="text-red-400 text-sm ml-2")= errors ? errors.title : ''
+            div(class="flex flex-col pb-4")
+                input(class="bg-gray-300 p-2 rounded text-gray-800 focus:outline-gray-500" type="text", name="summary", placeholder="Donnez un résumé de votre article" value = badData ? badData.summary : '')
+                span(class="text-red-400 text-sm ml-2")=errors ? errors.summary : ''
+            div(class="flex flex-col pb-4")
+                input(class="bg-gray-300 p-2 rounded text-gray-800 focus:outline-gray-500" type="text" id="categories" name="categories" placeholder="Donnez les catégories de votre article" value=badData ? badData.categories : [])
+                span(class="text-center text-xs") Séparer les entrées par une virgule (ou tapez sur la touche entrée après chaque catégorie)
+                span(class="text-red-400 text-sm ml-2")= errors ? errors.categories : ''
+            div(class="flex flex-col pb-4") 
+                textarea(class="bg-gray-300 p-2 rounded text-gray-800 focus:outline-gray-500" name="content", rows="10" cols="15", placeholder="Ecrivez votre article...") !{badData ? badData.content : ''}
+                span(class="text-red-400 text-sm ml-2")= errors ? errors.content : ''
+            div(class="flex justify-center")
+                input(type="submit" value="Poster !" class="rounded-lg px-8 py-2 md:px-16 text-gray-200 font-bold text-lg bg-gray-800 cursor-pointer hover:bg-gray-700 focus:bg-gray-600 focus:text-gray-300")
     script.
         // Using the tagify to get select tags
-        const input = document.querySelector(".new-article #categories");
+        const input = document.querySelector("#categories");
         const categoriesString = "#{categories.join()}";
         const list = categoriesString.split(',');
         
-        console.log(list)
         const tagify = new Tagify(input, {
             whitelist: list, 
             enforceWhitelist: false,

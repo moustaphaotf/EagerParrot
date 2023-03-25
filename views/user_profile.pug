@@ -1,22 +1,25 @@
 extends layout 
 block content
-    .user-profile 
-        h1=user_profile.fullname
-        div 
-            ul 
-                li #[a(href="#articles") Articles]
-        
-        #articles
-            h2 Articles publiés (!{articles.length})
-            .articles.published
+    div
+        h1(class="text-2xl font-bold text-gray-200 text-center m-4 md:text-left")=user_profile.fullname        
+        div
+            h2(class="text-2xl text-center m-4 md:text-left") Articles publiés (!{articles.length})
+            div(class="px-4 grid md:grid-cols-2 lg:grid-cols-3 gap-4")
                 each a in articles
                     .article(id="article" + a.id)
                         include includes/article_info
                 else 
                     span Aucun article à afficher
             if user && user.id === user_profile.id && articles_unpublished.length !== 0
-                h2 Article non publiés (!{articles_unpublished.length})
-                .articles.unpublished 
+                h2(class="text-2xl text-center m-4 md:text-left") Article non publiés (!{articles_unpublished.length})
+                div(class="px-4 grid md:grid-cols-2 lg:grid-cols-3 gap-4")
                     each a in articles_unpublished 
                         .article(id="article" + a.id)
                             include includes/article_info
+        if user
+            div(class="")
+                div(class="fixed bottom-8 right-8 md:top-16 z-10")
+                    a(href="/articles/new" class="text-gray-300 block rounded-full border-2 border-gray-300 p-2 shadow bg-gray-500 hover:bg-gray-600 active:bg-gray-700")
+                        svg(viewBox="0 0 100 100" width="25")
+                            rect(x="20" y="70" width="60" height="20" fill="#F0F0F0" stroke="#000" stroke-width="2")
+                            path(d="M80 10 L70 20 L20 70 L10 80 L10 90 L20 90 L90 20 L90 10 L80 10 Z" fill="#000" stroke="#000" stroke-width="2")

@@ -146,7 +146,7 @@ module.exports = class{
                 else if(!article) {
                     const err = new Error("Article introuvable !");
                     return next(err);
-                } else if(article.published == 0 && (req.session.user && article.author_id != req.session.user.id || true )) {
+                } else if(article.published == 0 && (!req.session.user || req.session.user && article.author_id != req.session.user.id)) {
                     const err = new Error("Vous n'avez pas accès à cet article !");
                     return next(err);
                 } else {

@@ -1,22 +1,12 @@
 extends layout
 
 block content
-  .home 
-    h1= title || "Eager Parrot"
-    p Welcome to #{title || "Eager Parrot"}
+  h1(class="text-3xl md:text-4xl lg:text-5xl font-bold text-center text-gray-300")= title || "Eager Parrot"
+  section(class="m-4 md:flex md:my-8 lg:my-16 xl:my-32 xl:mx-32")
+    p(class="m-4 p-4 bg-gray-800 md:border-[1px] text-center rounded-lg") Une plateforme de lecture qui permet aux utilisateurs de se connecter avec d'autres personnes partageant les mêmes intérêts.
+    p(class="m-4 p-4 bg-gray-800 md:border-[1px] text-center rounded-lg") Une vaste sélection de livres et articles dans différents genres et styles.
+    p(class="m-4 p-4 bg-gray-800 md:border-[1px] text-center rounded-lg") Une plateforme facile à utiliser et intuitive pour que vous permettre de naviguer facilement à travers les différents livres et sections.
 
-    .actions 
-      .action 
-        h4 Histoires 
-        ul 
-          li 
-            a(href="/stories") Liste des histoires
-          li 
-            a(href="/stories/new") Nouvelle histoire
-      .action 
-        h4 Articles 
-        ul 
-          li 
-            a(href="/articles") Liste des articles 
-          li 
-            a(href="/articles/new") Nouvel article
+  div(class="flex justify-center items-center")
+    a(href="/stories" class="hover:bg-gray-700 bg-gray-600 text-gray-100 rounded w-32 text-center text-xl mx-2 py-1") Histoires
+    a(href="/articles" class="hover:bg-gray-700 bg-gray-600 text-gray-100 rounded w-32 text-center text-xl mx-2 py-1") Articles

@@ -2,17 +2,20 @@ doctype html
 html
   head
     title= title || "Eager parrot"
-    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel="shortcut icon", href="/images/favicon.png", type="image/x-icon")
+    link(rel='stylesheet', href='/stylesheets/output.css')
     block script 
     block style
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
-  body
-    ul 
-      li #[a(href="/") Home]
-      li #[a(href="/user/signup") Inscription]
-      if !user 
-        li #[a(href="/user/signin") Connexion]
-      else 
-        li #[a(href="/user/signout") Déconnexion ] (!{user.username})
-        li #[a(href=`/user/${user.id}/profile`) Profil ]
+
+  body(class="bg-gray-900 text-gray-400")
+    header(class="flex w-full justify-between p-1")
+      div
+        a(href="/") #[img(role="button" src="/images/favicon.png" width="50")]
+      div(class="flex items-center") 
+        if !user 
+          a(href="/user/signin" class="hover:bg-gray-800 bg-gray-700 text-gray-200 rounded px-2 py-1 mx-1") Connexion
+        else 
+          a(href="/user/signout" class="hover:bg-gray-800 bg-gray-700 text-gray-200 rounded px-2 py-1 mx-1") Déconnexion 
+          a(href=`/user/${user.id}/profile` class="hover:bg-gray-800 bg-gray-700 text-gray-200 rounded px-2 py-1 mx-1") Profil 
     block content
