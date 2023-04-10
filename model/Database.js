@@ -46,6 +46,7 @@ const Database = class {
             }
         );
 
+        // Story
         db.run(
             `
                 CREATE TABLE IF NOT EXISTS story(
@@ -65,6 +66,7 @@ const Database = class {
             }
         );
         
+        // Chapter
         db.run(
             `
                 CREATE TABLE IF NOT EXISTS chapter(
@@ -84,6 +86,7 @@ const Database = class {
             }
         );  
 
+        // Comment
         db.run(
             `
                 CREATE TABLE IF NOT EXISTS comment(
@@ -104,6 +107,7 @@ const Database = class {
             }
         );
         
+        // View
         db.run(
             `
                 CREATE TABLE IF NOT EXISTS view(
@@ -122,7 +126,8 @@ const Database = class {
                 else console.log("The `view` table was created successfully !")
             }
         );
-                
+            
+        // Review
         db.run(
             `
                 CREATE TABLE IF NOT EXISTS review(
@@ -146,6 +151,7 @@ const Database = class {
             }
         ); 
 
+        // Report
         db.run(
             `
                 CREATE TABLE IF NOT EXISTS report(
@@ -168,6 +174,7 @@ const Database = class {
             }
         );
 
+        // Story category
         db.run(
             `
                 CREATE TABLE IF NOT EXISTS storycategory(
@@ -181,6 +188,7 @@ const Database = class {
             }
         );
 
+        // Article category
         db.run(
             `
                 CREATE TABLE IF NOT EXISTS articlecategory(
@@ -194,6 +202,7 @@ const Database = class {
             }
         );
 
+        // Article - article category relationship
         db.run(
             `
                 CREATE TABLE IF NOT EXISTS article_articlecategory(
@@ -210,6 +219,7 @@ const Database = class {
             }
         );
 
+        // Story - Story category relationship
         db.run(
             `
                 CREATE TABLE IF NOT EXISTS story_storycategory(
@@ -227,6 +237,7 @@ const Database = class {
             }
         );
         
+        // Article
         db.run(
             `
                 CREATE TABLE IF NOT EXISTS article(
@@ -247,18 +258,21 @@ const Database = class {
             }
         );
         
+        // Asset
         db.run(
             `
-                CREATE TABLE IF NOT EXISTS asset(
+                CREATE TABLE IF NOT EXISTS media(
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     path TEXT NOT NULL,
                     article_id INTEGER NOT NULL,
+                    type TEXT NOT NULL,
+                    mime TEXT NOT NULL,
                     FOREIGN KEY (article_id) REFERENCES article(id) ON DELETE CASCADE
                 );
             `,
             err => {
-                if(err) console.log("Error while creating the `asset` table", err.message);
-                else console.log("The `asset` table was created successfully !")
+                if(err) console.log("Error while creating the `media` table", err.message);
+                else console.log("The `media` table was created successfully !")
             }
         );
         

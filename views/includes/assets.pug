@@ -1,7 +1,119 @@
 div
     h3(class="text-xl font-bold text-center") Médias
     div(class="m-2")
-        form(action="/assets/new" method="post" id="asset-form" enctype="multipart/form-data")
-            div(class="flex flex-col px-2")
-                input(type="file" name="file")
-                span(class="text-sm text-red-400 ml-1")
+        form(class="flex flex-col sm:flex-row items center mx-2" action="/media/new" method="POST" id="asset-form" enctype="multipart/form-data")
+            div(class="flex flex-col")
+                input(type="file" name="media")
+                span(id="fileUploadError" class="text-sm text-red-400 ml-2")
+            div 
+                input(class="bg-gray-800 text-gray-300 rouded-lg px-2 py-1 mt-2 sm:mt-0 sm:ml-2" type="submit" value="Uploader !")
+    div(id="mediasBlock" class="grid grid-cols-2 gap-2 px-4")
+        if medias
+            each media in medias
+                div(class='article')
+                    if (media.type === 'image')
+                        img(src=media.path class="object-contain")
+                    else if (media.type === "video")
+                        video(src=media.path class="object-contain" controls)
+                    else if (media.type === "audio")
+                        audio(src=media.path)
+                    div(class="border-gray-50") Lien :
+                        span(class="block word-wrap")= media.path 
+                        div 
+                            button(data-path=media.path class="copy-btn" title="Copier le lien") &#x1F4CB;
+                            button(data-path=media.path class="delete-btn ml-2" title="Supprimer le média") &#x1F5D1;
+
+script.
+    const form = document.querySelector("form");
+    const media = form.querySelector("input");
+    const errorLabel = form.querySelector("span");
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        errorLabel.innerText = "";
+        
+        if(media.files.length === 0) {
+            errorLabel.innerText = "Aucun fichier n'a été sélectionné !"
+            return;
+        }
+        const data = new FormData(form);
+
+        fetch("http://localhost:3000/media/new", {
+            method: "POST",
+            body: data
+        }).then(res => res.json())
+        .then(({data, message, error}) => {
+            if(error) {
+                document.getElementById("fileUploadError").innerText = message;
+            } else {
+                addNewMedia(data);
+                e.target.reset()
+            }
+        })
+        .catch(err => {
+            console.log("Error occured", err);
+        });
+    });
+
+    //- Upon click on the media block
+    const mediasBlock = document.getElementById("mediasBlock");
+    mediasBlock.addEventListener('click', e => {
+        if(e.target.classList.contains('copy-btn')) {
+            const copyText = e.target.getAttribute('data-path');
+            navigator.clipboard.writeText(copyText);
+        } else if(e.target.classList.contains('delete-btn')) {
+            const path = e.target.getAttribute('data-path');
+
+            fetch("http://localhost:3000/media/delete", {
+                body : JSON.stringify({path}),
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            }).then(response => response.json())
+            .then(response => {
+                // Si le fichier a été supprimé ou s'il n'existe pas
+                if(response.error === 0 || response.error === -1) {
+                    const media = e.target.parentElement.parentElement.parentElement;
+                    mediasBlock.removeChild(media);
+                }
+            }).catch(err => {
+                console.log(err);
+            });
+        }
+    })
+
+    function addNewMedia(media) {
+        let mediaHTML = '<div>';
+        if(media) {
+            switch(media.type) {
+                case 'audio':
+                    mediaHTML += `<audio src="${media.path}" controls></audio>`
+                    break;
+                case 'video':
+                    mediaHTML += `<video class="object-contain" src="${media.path}" controls></video>`
+                    break;
+                case 'image':
+                    mediaHTML += `<img class="object-contain" src="${media.path}" controls></video>`
+                    break;
+            }
+
+            mediaHTML += `
+                    <div class="border-gray-50">
+                        Lien :
+                        <span class="block word-wrap">
+                            ${media.path}
+                        </span>
+                        <div>
+                            <button data-path="${media.path}" class="copy-btn ml-2" title="Copier le lien">📋</button>
+                            <button data-path="${media.path}" class="delete-btn" title="Supprimer le média">&#x1F5D1;</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const mediasBlock = document.getElementById("mediasBlock");
+            mediasBlock.innerHTML = mediaHTML + mediasBlock.innerHTML
+        }
+    }
+    

@@ -206,10 +206,14 @@ module.exports = class{
             db.all("SELECT id, name FROM articlecategory;", (err, categories) => {
                 if(err) console.log("An error occured while getting the articles !", err.message);
 
+                // Récupérer la liste des médias
+                console.log(req.session.medias)
+
                 res.render('article_create', {
                     categories: categories.map(c => c.name),
                     title: "Nouvel article", 
-                    user: req.session.user
+                    user: req.session.user,
+                    medias: req.session.medias
                 });
             });
 
@@ -279,6 +283,7 @@ module.exports = class{
                         badData: req.body,
                         errors: errs,
                         categories: categories.map(c => c.name),
+                        medias: req.session.medias,
                     });
                 });
             } else {
@@ -319,6 +324,9 @@ module.exports = class{
                                 }
                             });
                         });
+
+                        // Ajouter les médias dans la base de données
+                        this.addArticleMedia(req, db, article_id);
 
                         // On ajoute cette action dans l'historique ?
                         db.run(
@@ -551,6 +559,9 @@ module.exports = class{
                                         ORDER BY c.name;
                                     `, req.params.id, callback
                                 );
+                            },
+                            article_medias(callback) {
+                                db.all("SELECT * FROM media WHERE article_id = ?", req.params.id, callback)
                             }
                         },
                         (err, results) => {
@@ -561,7 +572,8 @@ module.exports = class{
                                     all_categories: results.all_categories.map(c => c.name),
                                     title: "Modification d'un article",
                                     user: req.session.user,
-                                    article
+                                    article,
+                                    medias: req.session.medias ? [...req.session.medias, ...results.article_medias] : results.article_medias,
                                 });
                             }
                         }
@@ -690,6 +702,9 @@ module.exports = class{
                                         });
                                     });
 
+                                    // Ajouter les médias dans la base de données
+                                    this.addArticleMedia(req,db, article_id);
+
                                     // Adding the action into the history table
                                     db.run(
                                         "INSERT INTO history(article_id, author_id, created_at, description) VALUES (?, ?, ?, ?)",
@@ -730,6 +745,9 @@ module.exports = class{
                                                 ORDER BY c.name;
                                             `, req.params.id, callback
                                         );
+                                    },
+                                    article_medias(callback){
+                                        db.all("SELECT * FROM media WHERE article_id = ?", req.params.id, callback);
                                     }
                                 },
                                 (err, results) => {
@@ -743,6 +761,7 @@ module.exports = class{
                                             article,
                                             badData: req.body,
                                             errors: errs,
+                                            medias: results.article_medias,
                                         });
                                     }
                                 }
@@ -870,5 +889,25 @@ module.exports = class{
         }
 
         res.redirect(target);
+    }
+
+    static addArticleMedia(req, db, article_id) {
+        if(req.session.medias) {
+            let sql = "INSERT INTO media(article_id, path, type, mime)";
+            let values = [];
+            let placeholders = req.session.medias.map(m => {
+                values.push(article_id, m.path, m.type, m.mime);
+                return "(?, ?, ?, ?)";
+            });
+            placeholders = placeholders.join(", ");
+
+            sql += " VALUES " + placeholders;
+
+            db.run(sql, values, err => {
+                if(err) console.log("Error while saving the article medias !", err.message);
+            });
+
+            req.session.medias = undefined;
+        }
     }
 }
