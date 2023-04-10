@@ -60,9 +60,7 @@ module.exports = class {
         }
 
         // Le supprimer de la base de données
-        const db = new sqlite.Database('eagerparrot.db', err => {
-            if(err) console.log("Error while opening the datase !");
-        });
+        const db = require('../model/Database').get();
 
         db.run("DELETE FROM media WHERE path=?", req.body.path, err => {
             if(err) console.log("Error while deleting the media !", err.message);

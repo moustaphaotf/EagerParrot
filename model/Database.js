@@ -276,6 +276,7 @@ const Database = class {
             }
         );
         
+        // History
         db.run(
             `
                 CREATE TABLE IF NOT EXISTS history(
@@ -304,6 +305,7 @@ const Database = class {
             }
         );
 
+        // Article list view
         db.exec(
             `
                 DROP VIEW IF EXISTS article_list;
@@ -330,6 +332,7 @@ const Database = class {
             }
         );
 
+        // Community article list view
         db.exec(
             `
                 DROP VIEW IF EXISTS community_articles;
@@ -359,6 +362,7 @@ const Database = class {
             }
         );
 
+        // Comment list view
         db.exec(
             `
                 DROP VIEW IF EXISTS comment_list;
@@ -459,6 +463,13 @@ const Database = class {
         )
 
         db.close();
+    }
+
+    static get() {
+        const db = new sqlite.Database('eagerparrot.db', err => {
+            if(err) console.log("Error while opening the database !", err.message);
+        });
+        return db;
     }
 }
 

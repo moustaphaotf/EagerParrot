@@ -12,14 +12,11 @@ module.exports = class {
         body("username").trim().isLength({min: 1}).withMessage("Vous devez spécifier un nom d'utilisateur") ,
         body("password").trim().isLength({min: 1}).withMessage("Vous devez renseigner un mot de passe !"),
         (req, res, next) => {
-            const {session} = req;
             const {username, password} = req.body;
 
             const errors = validationResult(req);
             if(errors.isEmpty()) {
-                const db = new sqlite.Database('eagerparrot.db', sqlite.OPEN_READONLY, err => {
-                    if(err) console.log("Error while opening the database !");
-                })
+                const db = require('../model/Database').get();
                 db.get(
                     "SELECT * FROM user WHERE username=? AND password=?;",
                     [username, password],
@@ -75,36 +72,38 @@ module.exports = class {
         body("password2")
             .trim()
             .isLength({min: 1})
-            .withMessage("Le mot de passe de confirmation est obligatoire."),
+            .withMessage("Le mot de passe de confirmation est obligatoire.")
+            .custom((value, { req }) => {
+                if(value !== req.body.password1) {
+                    throw new Error("Les mots de passe ne correnspodent pas !")
+                }
+                return true;
+            }),
         (req, res, next) => {
             const errors = validationResult(req);
             if(errors.isEmpty()) {
-                const {firstname, lastname, email, username, password1, password2} = req.body;
-                const db = new sqlite.Database("eagerparrot.db");
-
-                if(password1 !== password2) {
-                    res.render("signup", {errors: {password2: "Les mots de passe ne correspondent pas !"}, badData: req.body});
-                } else {
-                    db.get("SELECT * FROM user WHERE email=? OR username=?", [email, username], (err, user) => {
-                        if(err) next(err);
-                        else if (user) {
-                            if(user.email === email) {
-                                res.render("signup", {errors: {email: "Cette adresse email est déjà utilisée !"}, badData: req.body});
-                            } else if (user.username === username) {
-                                res.render("signup", {errors: {username: "Ce nom d'utilisateur est déjà utilisé !"}, badData: req.body});
-                            }
-                        } else {
-                            db.run(
-                                `INSERT INTO user (firstname, lastname, email, username, password, role, active, registered_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-                                [firstname, lastname, email, username, password1, 'USER', 0, new Date().toISOString()],
-                                err => {
-                                    if(err) return next(err);
-                                    else res.redirect('/user/signin');
-                                }
-                            )
+                const {firstname, lastname, email, username, password1} = req.body;
+                const db = require('../model/Database').get();
+                
+                db.get("SELECT * FROM user WHERE email=? OR username=?", [email, username], (err, user) => {
+                    if(err) next(err);
+                    else if (user) {
+                        if(user.email === email) {
+                            res.render("signup", {errors: {email: "Cette adresse email est déjà utilisée !"}, badData: req.body});
+                        } else if (user.username === username) {
+                            res.render("signup", {errors: {username: "Ce nom d'utilisateur est déjà utilisé !"}, badData: req.body});
                         }
-                    });
-                }
+                    } else {
+                        db.run(
+                            `INSERT INTO user (firstname, lastname, email, username, password, role, active, registered_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+                            [firstname, lastname, email, username, password1, 'USER', 0, new Date().toISOString()],
+                            err => {
+                                if(err) return next(err);
+                                else res.redirect('/user/signin');
+                            }
+                        )
+                    }
+                });
 
                 db.close();
             } else {
@@ -129,9 +128,7 @@ module.exports = class {
         // Il faudra afficher ses informations personnelles
         // Puis les articles qu'il a publiés
         // Plus tard, les histoires qu'il a publiés peut-être... je sais pas (OUAIS, on va le prévoir)
-        const db = new sqlite.Database('eagerparrot.db', sqlite.OPEN_READONLY, err => {
-            if(err) return console.log("Error while opening the database !");
-        });
+        const db = require('../model/Database').get();
 
         async.parallel(
             {
@@ -164,10 +161,14 @@ module.exports = class {
                 }
             },
             (err, results) => {
-                [...results.articles, ...results.articles_unpublished].map(el => {
-                    el.created_at = DateTime.fromISO(el.created_at).toLocaleString(DateTime.DATETIME_MED);
-                    el.last_update = DateTime.fromISO(el.last_update).toLocaleString(DateTime.DATETIME_MED);
-                });
+                [
+                    results.articles,
+                    results.articles_unpublished
+                ].forEach(articles => articles.forEach(a =>{
+                    a.created_at = DateTime.fromISO(a.created_at).toLocaleString(DateTime.DATETIME_MED);
+                    a.last_update = DateTime.fromISO(a.last_update).toLocaleString(DateTime.DATETIME_MED);
+                }));
+
                 if(err) return next(err);
                 else {
                     res.render("user_profile", {
